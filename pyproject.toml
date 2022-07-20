@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "wailer"
+version = "0.1.0"
+description = "Emailer and SMSer for Django"
+authors = ["Rémy Sanchez <remy.sanchez@with-madrid.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+django-sms = "^0.5.0"
+django-phonenumber-field = "^6.3.0"
+phonenumbers = "^8.12.52"
+premailer = "^3.10.0"
+
+[tool.poetry.dev-dependencies]
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
