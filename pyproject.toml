@@ -13,6 +13,8 @@ django-sms = ">=0.5"
 django-phonenumber-field = {extras = ["phonenumbers"], version = ">=6"}
 
 [tool.poetry.dev-dependencies]
+isort = "^5.10.1"
+black = "^22.6.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

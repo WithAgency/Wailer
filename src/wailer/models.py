@@ -1,17 +1,17 @@
 from typing import Any, Type
 from uuid import uuid4
 
+from django.conf import settings
 from django.core.mail import send_mail
 from django.db import models
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.timezone import now
-from phonenumber_field.modelfields import PhoneNumberField
-from django.conf import settings
 from django.utils.translation import override as override_locale
+from phonenumber_field.modelfields import PhoneNumberField
 from sms import send_sms
 
-from .interfaces import SmsType, EmailType
+from .interfaces import EmailType, SmsType
 from .utils import import_class
 
 

@@ -1,14 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Any, Mapping
+from typing import TYPE_CHECKING, Any, Mapping
+
 from django.conf import settings
 from django.template.loader import render_to_string
-
 from phonenumbers import PhoneNumber, parse
+from premailer import transform
 
 from wailer.errors import WailerSmsException
-from premailer import transform
-from typing import TYPE_CHECKING
-
 
 if TYPE_CHECKING:
     from .models import BaseMessage

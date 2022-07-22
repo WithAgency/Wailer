@@ -13,3 +13,4 @@ webpack_bundles/
 celerybeat-schedule.*
 .vscode
 *.sqlite3
+/doc/build/
