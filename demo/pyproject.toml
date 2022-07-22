@@ -1,16 +1,13 @@
 [tool.poetry]
-name = "wailer"
+name = "wailer_demo"
 version = "0.1.0"
-description = "A Django emailing utility"
+description = "A demo Django app using Wailer"
 authors = ["Rémy Sanchez <remy.sanchez@hyperthese.net>"]
 license = "WTFPL"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-Django = "*"
-premailer = ">=3"
-django-sms = ">=0.5"
-django-phonenumber-field = {extras = ["phonenumbers"], version = ">=6"}
+wailer = { path = ".." }
 
 [tool.poetry.dev-dependencies]
 

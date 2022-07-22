@@ -1,17 +1,17 @@
 from typing import Any, Type
 from uuid import uuid4
 
-from django.conf import settings
 from django.core.mail import send_mail
 from django.db import models
 from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.timezone import now
-from django.utils.translation import override as override_locale
 from phonenumber_field.modelfields import PhoneNumberField
+from django.conf import settings
+from django.utils.translation import override as override_locale
 from sms import send_sms
 
-from .interfaces import EmailType, SmsType
+from .interfaces import SmsType, EmailType
 from .utils import import_class
 
 
@@ -205,15 +205,3 @@ class Sms(BaseMessage):
             Sms.objects.filter(pk=self.pk).update(
                 date_sent=now(), recipient=self.recipient, sender=self.sender
             )
-
-
-class Open(models.Model):
-    """
-    Represents a mail open. User agent is stored for statistics purpose.
-    """
-
-    AGENT_MAX_LENGTH = 1000
-
-    email = models.ForeignKey("Email", related_name="opens", on_delete=models.CASCADE)
-    agent = models.TextField(max_length=AGENT_MAX_LENGTH, blank=True)
-    date = models.DateTimeField(auto_now_add=True)
