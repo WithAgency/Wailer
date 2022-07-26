@@ -1,6 +1,6 @@
 # Wailer
 
-![Unit Tests](https://github.com/WithAgency/Wailer/actions/workflows/tests/badge.svg)
+![Unit Tests](https://github.com/WithAgency/Wailer/actions/workflows/tests.yml/badge.svg)
 
 Wailer (WITH Mailer) is an utility that builds on top of Django's emailing
 capabilities (and SMS through `django-sms`) in order to provide easy solutions
