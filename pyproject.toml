@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "wailer"
-version = "0.1.0"
+version = "1.0.0-alpha.1"
 description = "A Django emailing utility"
 authors = ["Rémy Sanchez <remy.sanchez@hyperthese.net>"]
 license = "WTFPL"

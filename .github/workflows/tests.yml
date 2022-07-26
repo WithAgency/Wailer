@@ -9,6 +9,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.8", "3.9", "3.10"]
+        django-version: ["~3.2", "~4.0", "~4.1"]
 
     steps:
       - uses: actions/checkout@v3
@@ -22,6 +23,7 @@ jobs:
           pip install --upgrade pip
           pip install poetry
           poetry install
+          poetry add ${{ matrix.django-version }}
       - name: Run Django tests
         working-directory: demo
         run: |
