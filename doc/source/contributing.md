@@ -28,3 +28,18 @@ The documentation is written using Sphinx and auto-built using RTD. You can
 have a look in the `doc` folder.
 
 Every new feature should be documented!
+
+## Unit testing
+
+The whole project should be testable and tested.
+
+As it is a Django sub-app that needs to be integrated with some amount of
+configuration, the tests are displaced into the `demo` Django project (within
+this repo). In order to run the tests, you need to run them using the
+`manage.py` from the `demo` project, in a valid Python environment.
+
+An easy way to run it, from the `demo` folder:
+
+```
+poetry run ./manage.py test my_app
+```
