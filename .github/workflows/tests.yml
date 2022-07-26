@@ -23,7 +23,7 @@ jobs:
           pip install --upgrade pip
           pip install poetry
           poetry install
-          poetry add ${{ matrix.django-version }}
+          poetry add "Django${{ matrix.django-version }}"
       - name: Run Django tests
         working-directory: demo
         run: |
