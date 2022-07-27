@@ -1,9 +1,28 @@
 [tool.poetry]
 name = "wailer"
-version = "1.0.0-alpha.1"
-description = "A Django emailing utility"
+version = "1.0.0-alpha.2"
+description = "A Django emailing/texting utility"
 authors = ["Rémy Sanchez <remy.sanchez@hyperthese.net>"]
 license = "WTFPL"
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Framework :: Django",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4",
+    "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
+    "Intended Audience :: Developers",
+    "Topic :: Communications :: Email",
+    "Topic :: Software Development :: Libraries",
+    "Typing :: Typed",
+]
+
+readme = "README.md"
+
+repository = "https://github.com/withagency/wailer"
+homepage = "https://github.com/withagency/wailer"
+
+keywords = ["django", "email", "sms"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
