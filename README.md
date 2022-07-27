@@ -10,3 +10,7 @@ to common emailing problems.
 - Inlining CSS of emails you send
 - Have direct-access URLs for those emails
 - Manage the localization (even from a server-side task)
+
+## Documentation
+
+[✨ **Documentation is there** ✨](https://with-wailer.readthedocs-hosted.com/en/latest/)
