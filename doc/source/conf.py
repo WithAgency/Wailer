@@ -6,9 +6,10 @@ list see the documentation:
 https://www.sphinx-doc.org/en/master/usage/configuration.html
 """
 
-from pathlib import Path
 import os
 import sys
+from pathlib import Path
+
 import django
 
 # -- Django setup ------------------------------------------------------------

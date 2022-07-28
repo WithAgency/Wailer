@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Sequence, Mapping, Union
+from typing import TYPE_CHECKING, Mapping, Sequence, Union
 
 from django.conf import settings
 from django.template.loader import render_to_string
