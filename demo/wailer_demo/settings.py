@@ -101,11 +101,20 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+AUTH_USER_MODEL = "my_app.User"
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
-LANGUAGE_CODE = "en-us"
+LANGUAGE_CODE = "en"
+
+LANGUAGES = [
+    ("en", "English"),
+    ("fr", "French"),
+]
+
+LOCALE_PATHS = [BASE_DIR / "locales"]
 
 TIME_ZONE = "UTC"
 
@@ -123,3 +132,14 @@ STATIC_URL = "static/"
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+# ---
+# Wailer
+# ---
+
+WAILER_EMAIL_TYPES = {
+    "static": "my_app.emails.Static",
+    "hello": "my_app.emails.Hello",
+    "hello-user": "my_app.emails.HelloUser",
+}
+WAILER_BASE_URL = "http://localhost:8000"

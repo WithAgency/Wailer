@@ -10,6 +10,7 @@ python = "^3.8"
 wailer = { path = ".." }
 
 [tool.poetry.dev-dependencies]
+bpython = "^0.22.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
