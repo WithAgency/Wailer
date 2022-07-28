@@ -1,3 +1,2 @@
 ..
-sphinx
-myst-parser
+-r base.txt
