@@ -1,15 +1,24 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Mapping
+from typing import TYPE_CHECKING, Sequence, Mapping, Union
 
 from django.conf import settings
 from django.template.loader import render_to_string
 from phonenumbers import PhoneNumber, parse
 from premailer import transform
 
-from wailer.errors import WailerSmsException
-
 if TYPE_CHECKING:
     from .models import BaseMessage
+
+
+JsonType = Union[
+    str,
+    int,
+    float,
+    bool,
+    None,
+    Mapping[str, "JsonType"],
+    Sequence["JsonType"],
+]
 
 
 class BaseMessageType(ABC):
@@ -18,8 +27,23 @@ class BaseMessageType(ABC):
     """
 
     def __init__(self, message: "BaseMessage"):
-        self.data: Any = message.data
         self.message: "BaseMessage" = message
+
+    @property
+    def data(self) -> JsonType:
+        """
+        Shortcut to access the message's data
+        """
+
+        return self.message.data
+
+    @property
+    def context(self) -> JsonType:
+        """
+        Shortcut to access the message's context
+        """
+
+        return self.message.context
 
     @abstractmethod
     def get_locale(self) -> str:
@@ -27,20 +51,12 @@ class BaseMessageType(ABC):
         You must implement this to indicate which locale this message will be
         sent with. The locale will be set to this during all subsequent calls
         (by example while rendering templates).
+
+        Let's note that the message's context is NOT available at this stage
+        so you should definitely not rely on it. You can use self.data though.
         """
 
         raise NotImplementedError
-
-    def get_data(self) -> Any:
-        """
-        Accessor for the data, in case someone wants to override it without
-        dirty tricks. This data will be saved in a JSON field and will be used
-        (through the message model) to instantiate this object. It's not
-        supposed to be changed on the way, especially if you work with cached
-        properties.
-        """
-
-        return self.data
 
 
 class SmsType(BaseMessageType, ABC):
@@ -77,15 +93,8 @@ class SmsType(BaseMessageType, ABC):
 
 class EmailType(BaseMessageType, ABC):
     """
-    Interface for an email type
+    Implement this interface in order to provide your own email type.
     """
-
-    def get_from(self) -> str:
-        """
-        Defaulting to Django's default, override for something else
-        """
-
-        return settings.DEFAULT_FROM_EMAIL
 
     @abstractmethod
     def get_to(self) -> str:
@@ -103,40 +112,27 @@ class EmailType(BaseMessageType, ABC):
 
         raise NotImplementedError
 
-    def get_text_content(self) -> str:
+    @abstractmethod
+    def get_context(self) -> Mapping[str, JsonType]:
         """
-        Renders the text template. Override if you want to render differently.
-        If you override then you might not need get_template_text_path() or
-        get_template_context() (but it's your call).
-        """
+        You must implement this method in order to provide a context for your
+        templates when they get rendered.
 
-        return render_to_string(
-            self.get_template_text_path(), self.get_template_context()
-        )
+        It's important to mention that this method will be called only once at
+        the time of creation of this email. Indeed, emails are immutable once
+        sent so there is no reason that the context should change between
+        calls. This prevents from having the content of the email changing.
 
-    def get_html_content(self) -> str:
-        """
-        Renders the HTML template. Override if you want to render differently.
-        If you override then you might not need get_template_html_path() or
-        get_template_context() (but it's your call).
+        As a result, the value out of this function will be stored into DB and
+        must be JSON-serializable.
 
-        HTML is transformed using Premailer to do various email things like
-        inlining the CSS and changing relative links to absolute links.
+        This function is called within the locale returned by
+        :py:meth:`BaseMessageType.get_locale`
         """
 
-        html = render_to_string(
-            self.get_template_html_path(), self.get_template_context()
-        )
-        return transform(html, base_url=settings.FRONT_URL)
+        raise NotImplementedError
 
-    def get_template_context(self) -> Mapping:
-        """
-        Default sensible context for template renderings, feel free to add
-        stuff in there.
-        """
-
-        return dict(self=self.message)
-
+    @abstractmethod
     def get_template_html_path(self) -> str:
         """
         Implement if you want a HTML part of the email. Or don't if you don't
@@ -146,6 +142,7 @@ class EmailType(BaseMessageType, ABC):
 
         raise NotImplementedError
 
+    @abstractmethod
     def get_template_text_path(self) -> str:
         """
         Implement if you want a text part of the email. Or don't if you don't
@@ -154,3 +151,51 @@ class EmailType(BaseMessageType, ABC):
         """
 
         raise NotImplementedError
+
+    def get_from(self) -> str:
+        """
+        Defaulting to Django's default, override for something else
+        """
+
+        return settings.DEFAULT_FROM_EMAIL
+
+    def get_text_content(self) -> str:
+        """
+        Renders the text template. Override if you want to render differently.
+        If you override then you might not need
+        :py:meth:`get_template_text_path` or :py:meth:`get_template_context`
+        (but it's your call).
+        """
+
+        return render_to_string(
+            self.get_template_text_path(), self.get_template_context()
+        )
+
+    def get_html_content(self) -> str:
+        """
+        Renders the HTML template. Override if you want to render differently.
+        If you override then you might not need
+        :py:meth:`get_template_html_path` or :py:meth:`get_template_context`
+        (but it's your call).
+
+        HTML is transformed using Premailer to do various email things like
+        inlining the CSS and changing relative links to absolute links.
+        """
+
+        html = render_to_string(
+            self.get_template_html_path(), self.get_template_context()
+        )
+        return transform(html, base_url=settings.WAILER_BASE_URL)
+
+    def get_template_context(self) -> Mapping:
+        """
+        The context of templates shall be the one from :py:meth:`get_context`,
+        with on top of that a reference to the message object in case you need
+        it.
+
+        Feel free to override and add whatever you need, however I'm not too
+        sure why you would do that. Better do things in :py:meth:`get_context`
+        for the protection it offers.
+        """
+
+        return dict(self=self.message, **self.message.context)

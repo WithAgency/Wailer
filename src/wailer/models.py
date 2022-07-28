@@ -1,4 +1,4 @@
-from typing import Any, Type
+from typing import Any, Optional, Type
 from uuid import uuid4
 
 from django.conf import settings
@@ -11,7 +11,7 @@ from django.utils.translation import override as override_locale
 from phonenumber_field.modelfields import PhoneNumberField
 from sms import send_sms
 
-from .interfaces import EmailType, SmsType
+from .interfaces import EmailType, JsonType, SmsType
 from .utils import import_class
 
 
@@ -24,7 +24,14 @@ class BaseMessage(models.Model):
         abstract = True
 
     id = models.UUIDField(default=uuid4, primary_key=True)
+    for_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="+",
+    )
     data = models.JSONField()
+    context = models.JSONField()
     type = models.CharField(max_length=1000)
     date_created = models.DateTimeField(auto_now_add=True)
     date_sent = models.DateTimeField(null=True, blank=True)
@@ -39,7 +46,9 @@ class Email(BaseMessage):
     recipient = models.EmailField(max_length=1000)
 
     @classmethod
-    def send(cls, type_: str, data: Any):
+    def send(
+        cls, type_: str, data: JsonType, user: Optional[models.Model] = None
+    ) -> "Email":
         """
         Call this to immediately send the email with the appropriate data.
 
@@ -54,6 +63,12 @@ class Email(BaseMessage):
             Data that the email type will be using, but also that will be
             saved into DB for restitution later (so must be serializable to
             JSON).
+        user
+            User concerned by this email. Not mandatory but it's recommended
+            to fill it up when sending an email to a user from the DB so that
+            it's easy to delete emails (and thus their content) associated to
+            this user when they delete their account or exert any kind of
+            GDPR rights.
         """
 
         assert type_ in settings.WAILER_EMAIL_TYPES
@@ -61,13 +76,18 @@ class Email(BaseMessage):
         obj = Email(
             data=data,
             type=type_,
+            for_user=user,
         )
 
         obj.sender = obj.email.get_from()
         obj.recipient = obj.email.get_to()
+        obj.context = obj.email.get_context()
+
         obj.save()
 
         obj.send_now()
+
+        return obj
 
     @cached_property
     def email(self) -> EmailType:

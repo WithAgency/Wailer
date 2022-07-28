@@ -10,6 +10,8 @@ Welcome to Wailer's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   emails
+   reference
    contributing
 
 

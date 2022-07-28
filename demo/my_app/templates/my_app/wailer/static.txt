@@ -1,0 +1,1 @@
+{% load i18n %}{{ prefix }} Text {% trans "in English" %}

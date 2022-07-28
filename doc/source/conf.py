@@ -1,18 +1,21 @@
-# Configuration file for the Sphinx documentation builder.
-#
-# This file only contains a selection of the most common options. For a full
-# list see the documentation:
-# https://www.sphinx-doc.org/en/master/usage/configuration.html
+"""
+Configuration file for the Sphinx documentation builder.
 
-# -- Path setup --------------------------------------------------------------
+This file only contains a selection of the most common options. For a full
+list see the documentation:
+https://www.sphinx-doc.org/en/master/usage/configuration.html
+"""
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
+from pathlib import Path
+import os
+import sys
+import django
+
+# -- Django setup ------------------------------------------------------------
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "wailer_demo.settings")
+sys.path.insert(0, f"{(Path(__file__).parent / '../../demo').absolute()}")
+django.setup()
 
 
 # -- Project information -----------------------------------------------------
@@ -55,3 +58,7 @@ html_theme = "alabaster"
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ["_static"]
+
+# -- Autodoc --
+
+autodoc_member_order = "bysource"
