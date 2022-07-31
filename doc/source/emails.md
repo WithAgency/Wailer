@@ -328,6 +328,74 @@ you can just do:
         raise NotImplementedError
 ```
 
+## Advanced HTML topics
+
+HTML emails are the most notoriously annoying kind of HTML to write. It did not
+evolve since its invention by Leonardo da Vinci in 1495 and email clients have
+quite an interesting approach of making the most dumb choices available to
+them.
+
+One of the goals of Wailer is definitely to ease that pain. Let's review what
+can help.
+
+### Automatic style inline
+
+Most email clients will ignore any `<style>` or `<link>` tag, making it
+mandatory to inline CSS into every single element. So what Wailer provides here
+is the ability to write your CSS file on the side and then inline it for you.
+
+Let's suppose that you put in your static files the 
+`my_app/wailer/styled-html.css` (relative to your app's 
+[static folder](https://docs.djangoproject.com/en/4.0/howto/static-files/)) 
+file with the following content:
+
+```css
+h1 {
+    color: red;
+}
+```
+
+And then your template, in `my_app/wailer/styled-html.html`:
+
+```html
+{% load wailer %}
+<!DOCTYPE html>
+<html>
+<head>
+    {% email_style "my_app/wailer/styled-html.css" %}
+</head>
+<body>
+    <h1>Hello</h1>
+</body>
+</html>
+```
+
+A few important things to notice:
+
+- The wailer template tags are loaded through `{% load wailer %}`
+- The `{% email_style %}` template tag is used in situ of where you would load
+  your style in normal conditions (in the `<head>`)
+
+Thanks to this, the CSS will get inlined in the CSS. The output will contain
+something like:
+
+```html
+<!-- ... -->
+    <h1 style="color:red">Hello</h1>
+<!-- ... -->
+```
+
+```{note}
+This won't work with media queries, as they can't be inlined. Life sucks I
+know.
+```
+
+```{note}
+Under the hood, all the work is done by 
+[Premailer](https://pypi.org/project/premailer/) using fairly default options
+as much as possible.
+```
+
 ## Conclusion
 
 We've seen that in order to provide you protection against common emailing

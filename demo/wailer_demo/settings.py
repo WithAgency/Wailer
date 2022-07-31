@@ -143,5 +143,6 @@ WAILER_EMAIL_TYPES = {
     "static-no-html": "my_app.emails.StaticNoHtml",
     "hello": "my_app.emails.Hello",
     "hello-user": "my_app.emails.HelloUser",
+    "styled-html": "my_app.emails.StyledHtml",
 }
 WAILER_BASE_URL = "http://localhost:8000"
