@@ -212,6 +212,10 @@ class TestGetBaseUrl(TransactionTestCase):
 
 class TestEmailPermalink(TransactionTestCase):
     def setUp(self) -> None:
+        site = Site.objects.get(pk=1)
+        site.domain = "wailer.org"
+        site.save()
+
         self.user = User.objects.create_user(
             username="test",
             email="john.doe@example.org",
@@ -241,5 +245,21 @@ class TestEmailPermalink(TransactionTestCase):
         )
 
     def test_get_invalid_format(self):
-        response = self.client.get(self.email.link_text.replace('.txt', '.nope'))
+        response = self.client.get(self.email.link_text.replace(".txt", ".nope"))
         self.assertEqual(response.status_code, 404)
+
+    def get_sent_mail(self) -> EmailMultiAlternatives:
+        self.assertEqual(len(mail.outbox), 1)
+        return mail.outbox[0]
+
+    def test_permalink_in_mail(self):
+        sent = self.get_sent_mail()
+        content, _ = sent.alternatives[0]
+        self.assertInHTML(
+            f"""
+                <a href="https://wailer.org/wailer/email/{self.email.pk}.html">
+                    Click here to display this email in a browser
+                </a>
+            """,
+            content,
+        )
