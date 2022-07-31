@@ -208,3 +208,38 @@ class TestGetBaseUrl(TransactionTestCase):
     def test_no_guess(self):
         with self.assertRaises(WailerTemplateException):
             self.email.email.get_base_url()
+
+
+class TestEmailPermalink(TransactionTestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(
+            username="test",
+            email="john.doe@example.org",
+            first_name="John",
+            last_name="Doe",
+            locale="fr",
+        )
+        self.email = Email.send("hello-user", dict(user_id=self.user.id), self.user)
+
+    def test_get_txt(self):
+        response = self.client.get(self.email.link_text)
+        self.assertEqual(response.context["self"], self.email)
+        self.assertEqual(response.resolver_match.kwargs["email_uuid"], self.email.pk)
+        self.assertEqual(
+            response.content.decode(response.charset),
+            "Salut John Doe!\n\nÀ plus la pluche\n",
+        )
+
+    def test_get_html(self):
+        response = self.client.get(self.email.link_html)
+        self.assertEqual(response.context["self"], self.email)
+        self.assertEqual(response.resolver_match.kwargs["email_uuid"], self.email.pk)
+        self.assertInHTML(
+            "Bonjour, John Doe!",
+            response.content.decode(response.charset),
+            count=1,
+        )
+
+    def test_get_invalid_format(self):
+        response = self.client.get(self.email.link_text.replace('.txt', '.nope'))
+        self.assertEqual(response.status_code, 404)

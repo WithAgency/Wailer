@@ -10,6 +10,7 @@ Welcome to Wailer's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   installation
    emails
    settings
    reference

@@ -4,7 +4,7 @@ from ipaddress import ip_address
 
 def import_class(path: str):
     """
-    From a classe's reference, returns the class object (or really anything
+    From a class' reference, returns the class object (or really anything
     part of a module).
 
     Parameters

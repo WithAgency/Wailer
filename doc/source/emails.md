@@ -431,6 +431,34 @@ easily override this behavior in your {py:class}`~.wailer.interfaces.EmailType`
 implementation by overloading 
 {py:meth}`~.wailer.interfaces.BaseMessageType.get_base_url`.
 
+### Permalink to email
+
+Wailer lets you create permalinks to your emails, for two main reasons:
+
+- So you can put in the header something like "If this email isn't displayed
+  properly, then click on this link"
+- But mostly, so you can debug your HTML code without sending a damned email
+  each time you change a line
+
+This is accessible as the
+{py:attr}`~.wailer.models.Email.link_html` and
+{py:attr}`~.wailer.models.Email.link_text` attributes of your email.
+
+Meaning that you can use it from a HTML or text template the following way:
+
+```html
+<a href="{{ self.link_html }}">
+    Click here to display this email in a browser
+</a>
+```
+
+```{note}
+The {py:attr}`~.wailer.models.Email.link_html` and
+{py:attr}`~.wailer.models.Email.link_text` attributes are not absolute URLs.
+Here we rely on Wailer's ability to automatically transform relative URLs into
+absolute ones in HTML templates in order for this link to work.
+```
+
 ## Conclusion
 
 We've seen that in order to provide you protection against common emailing
