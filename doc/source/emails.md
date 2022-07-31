@@ -316,6 +316,18 @@ class Hello(EmailType):
         return "my_app/wailer/hello.txt"
 ```
 
+## Skipping text or HTML
+
+If you don't want to send either the text or the HTML part of your email, it's
+easy to skip it by throwing a `NotImplementedError` while returning the
+template path. By example if you're lazy to write a HTML version of your email
+you can just do:
+
+```python
+    def get_template_html_path(self) -> str:
+        raise NotImplementedError
+```
+
 ## Conclusion
 
 We've seen that in order to provide you protection against common emailing
