@@ -88,3 +88,8 @@ class HelloUser(Hello):
 
     def get_locale(self) -> str:
         return self.context["locale"]
+
+
+class StyledHtml(Static):
+    def get_template_html_path(self) -> str:
+        return "my_app/wailer/styled-html.html"

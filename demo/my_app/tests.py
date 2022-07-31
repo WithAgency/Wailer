@@ -149,3 +149,17 @@ class TestHelloUser(TransactionTestCase):
         content, mime = sent.alternatives[0]
         self.assertEqual(mime, "text/html")
         self.assertInHTML("Bonjour, John Doe!", content, count=1)
+
+
+class TestStyledEmail(TransactionTestCase):
+    def setUp(self) -> None:
+        self.email = Email.send("styled-html", {})
+
+    def get_sent_mail(self) -> EmailMultiAlternatives:
+        self.assertEqual(len(mail.outbox), 1)
+        return mail.outbox[0]
+
+    def test_h1_has_style(self):
+        sent = self.get_sent_mail()
+        content, _ = sent.alternatives[0]
+        self.assertInHTML('<h1 style="color:red">Hello</h1>', content)
