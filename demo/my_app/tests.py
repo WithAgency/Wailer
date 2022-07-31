@@ -1,8 +1,10 @@
+from django.contrib.sites.models import Site
 from django.core import mail
 from django.core.mail import EmailMultiAlternatives
-from django.test import TransactionTestCase
+from django.test import TransactionTestCase, modify_settings, override_settings
 from my_app.models import User
 
+from wailer.errors import WailerTemplateException
 from wailer.models import Email
 
 
@@ -163,3 +165,46 @@ class TestStyledEmail(TransactionTestCase):
         sent = self.get_sent_mail()
         content, _ = sent.alternatives[0]
         self.assertInHTML('<h1 style="color:red">Hello</h1>', content)
+
+
+class TestGetBaseUrl(TransactionTestCase):
+    def setUp(self) -> None:
+        self.email = Email.send("styled-html", {})
+
+    @override_settings(WAILER_BASE_URL="https://example.org")
+    def test_wailer_base_url(self):
+        self.assertEqual(self.email.email.get_base_url(), "https://example.org")
+
+    @override_settings(WAILER_SITE_ID=1)
+    def test_wailer_site_id(self):
+        site = Site.objects.get(pk=1)
+        site.domain = "example.org"
+        site.save()
+
+        self.assertEqual(self.email.email.get_base_url(), "https://example.org")
+
+    def test_default_site_example(self):
+        site = Site.objects.get(pk=1)
+        site.domain = "example.org"
+        site.save()
+
+        self.assertEqual(self.email.email.get_base_url(), "https://example.org")
+
+    def test_default_site_localhost(self):
+        site = Site.objects.get(pk=1)
+        site.domain = "localhost:8000"
+        site.save()
+
+        self.assertEqual(self.email.email.get_base_url(), "http://localhost:8000")
+
+    def test_default_site_local_ip(self):
+        site = Site.objects.get(pk=1)
+        site.domain = "127.0.0.1:8000"
+        site.save()
+
+        self.assertEqual(self.email.email.get_base_url(), "http://127.0.0.1:8000")
+
+    @modify_settings(INSTALLED_APPS=dict(remove=["django.contrib.sites"]))
+    def test_no_guess(self):
+        with self.assertRaises(WailerTemplateException):
+            self.email.email.get_base_url()

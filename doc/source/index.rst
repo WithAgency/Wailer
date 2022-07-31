@@ -11,6 +11,7 @@ Welcome to Wailer's documentation!
    :caption: Contents:
 
    emails
+   settings
    reference
    contributing
 

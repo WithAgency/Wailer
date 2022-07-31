@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
     "wailer",
     "my_app",
 ]
@@ -134,6 +135,12 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # ---
+# Sites framework
+# ---
+
+SITE_ID = 1
+
+# ---
 # Wailer
 # ---
 
@@ -145,4 +152,3 @@ WAILER_EMAIL_TYPES = {
     "hello-user": "my_app.emails.HelloUser",
     "styled-html": "my_app.emails.StyledHtml",
 }
-WAILER_BASE_URL = "http://localhost:8000"
