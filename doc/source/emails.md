@@ -64,6 +64,8 @@ Before implementing this, let's have a look at how we're going to send this
 email.
 
 ```python
+from wailer.models import Email
+
 Email.send(
     "hello",
     dict(
