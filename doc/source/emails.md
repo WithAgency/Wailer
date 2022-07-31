@@ -396,6 +396,69 @@ Under the hood, all the work is done by
 as much as possible.
 ```
 
+### Absolute URLs for images and links
+
+Since you're in an email, you need to use absolute URLs. By example, if you
+have a `<img src="/img/foo.jpg">` then it simply  won't work because the emails
+don't have an URL of their own so the email client cannot resolve this image's
+URL.
+
+To that end, Wailer will automatically fix your links and emails in order to
+reflect their absolute URL. By example our image tag from above will 
+automatically be transformed into `<img src="https://my-app.com/img/foo.jpg>` 
+(if your base URL is `https://my-app.com`, cf right after). You don't have 
+anything to do, just render your template as usual and let the magic happen.
+
+However there is one detail that you might want to have a look into. There is
+no bulletproof way in Django to determine the absolute domain name of a 
+website. To that end, Wailer will use several strategies.
+
+1. If there is a `WAILER_BASE_URL` setting set, then this value will be used as 
+   a base URL for all emails
+2. Otherwise we'll try to use the 
+   ["sites"](https://docs.djangoproject.com/en/4.0/ref/contrib/sites/) 
+   framework, if available
+   1. If `WAILER_SITE_ID` is defined in the settings, we'll use that
+   2. Otherwise we'll get the default site. We do not have access to the 
+      `request` at the time of sending emails so if you're dealing with several 
+      websites you need to implement this on your own
+3. Otherwise, we'll just fail because there is really no way of guessing
+
+This tries to be a sensible default behavior, which will work without any
+configuration if you're using the sites framework with one site, however this
+will most definitely not be enough for all use cases. This is why you can 
+easily override this behavior in your {py:class}`~.wailer.interfaces.EmailType`
+implementation by overloading 
+{py:meth}`~.wailer.interfaces.BaseMessageType.get_base_url`.
+
+### Permalink to email
+
+Wailer lets you create permalinks to your emails, for two main reasons:
+
+- So you can put in the header something like "If this email isn't displayed
+  properly, then click on this link"
+- But mostly, so you can debug your HTML code without sending a damned email
+  each time you change a line
+
+This is accessible as the
+{py:attr}`~.wailer.models.Email.link_html` and
+{py:attr}`~.wailer.models.Email.link_text` attributes of your email.
+
+Meaning that you can use it from a HTML or text template the following way:
+
+```html
+<a href="{{ self.link_html }}">
+    Click here to display this email in a browser
+</a>
+```
+
+```{note}
+The {py:attr}`~.wailer.models.Email.link_html` and
+{py:attr}`~.wailer.models.Email.link_text` attributes are not absolute URLs.
+Here we rely on Wailer's ability to automatically transform relative URLs into
+absolute ones in HTML templates in order for this link to work.
+```
+
 ## Conclusion
 
 We've seen that in order to provide you protection against common emailing

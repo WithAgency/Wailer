@@ -3,6 +3,7 @@ from uuid import UUID
 
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.translation import override as override_locale
 
 from .models import Email, Sms
 
@@ -23,12 +24,13 @@ def email(request: HttpRequest, email_uuid: UUID, fmt: Text) -> HttpResponse:
 
     q = get_object_or_404(Email, pk=email_uuid)
 
-    if fmt == "html":
-        return HttpResponse(q.email.get_html_content())
-    elif fmt == "txt":
-        return HttpResponse(q.email.get_text_content(), content_type="plain/text")
-    else:
-        raise NotImplementedError
+    with override_locale(q.email.get_locale()):
+        if fmt == "html":
+            return HttpResponse(q.email.get_html_content())
+        elif fmt == "txt":
+            return HttpResponse(q.email.get_text_content(), content_type="plain/text")
+        else:
+            raise NotImplementedError
 
 
 def sms(request: HttpRequest, sms_uuid: UUID) -> HttpResponse:
@@ -45,4 +47,5 @@ def sms(request: HttpRequest, sms_uuid: UUID) -> HttpResponse:
 
     q = get_object_or_404(Sms, pk=sms_uuid)
 
-    return HttpResponse(q.sms.get_content(), content_type="plain/text")
+    with override_locale(q.sms.get_locale()):
+        return HttpResponse(q.sms.get_content(), content_type="plain/text")

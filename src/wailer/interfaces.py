@@ -6,6 +6,9 @@ from django.template.loader import render_to_string
 from phonenumbers import PhoneNumber, parse
 from premailer import transform
 
+from .errors import WailerTemplateException
+from .utils import is_loopback
+
 if TYPE_CHECKING:
     from .models import BaseMessage
 
@@ -57,6 +60,55 @@ class BaseMessageType(ABC):
         """
 
         raise NotImplementedError
+
+    def get_base_url(self) -> str:
+        """
+        Guesses the base URL for all links and images inside the email. This
+        uses several strategies:
+
+        #. If there is a `WAILER_BASE_URL` declared in the settings then we're
+           just going to use that
+
+        #. Otherwise we turn to the sites framework (if installed)
+
+           * The `WAILER_SITE_ID` can force the ID of the site we're using
+
+           * Which falls back to the default site. Since we don't have a
+             guarantee to be running in a request here, you better be careful
+             with that
+
+           * To be noted that the scheme is determined automatically. If the
+             domain is local then it's HTTP and otherwise it's HTTPS. That is
+             not covering 100% of the cases but if you feel like you need
+             something more precise feel free to set WAILER_BASE_URL or to
+             override this method
+
+        #. Otherwise we just fail because there is now ay to guess
+
+        You can override this method to implement whatever behavior you desire
+        instead of this one.
+        """
+
+        if hasattr(settings, "WAILER_BASE_URL"):
+            return settings.WAILER_BASE_URL
+        elif "django.contrib.sites" in settings.INSTALLED_APPS:
+            from django.contrib.sites.models import Site
+
+            if site_id := getattr(settings, "WAILER_SITE_ID", None):
+                site = Site.objects.get(pk=site_id)
+            else:
+                site = Site.objects.get_current()
+
+            host = site.domain.split(":")[0]
+
+            if is_loopback(host):
+                scheme = "http"
+            else:
+                scheme = "https"
+
+            return f"{scheme}://{site.domain}"
+        else:
+            raise WailerTemplateException("Cannot determine absolute URL of website")
 
 
 class SmsType(BaseMessageType, ABC):
@@ -185,7 +237,7 @@ class EmailType(BaseMessageType, ABC):
         html = render_to_string(
             self.get_template_html_path(), self.get_template_context()
         )
-        return transform(html, base_url=settings.WAILER_BASE_URL)
+        return transform(html, base_url=self.get_base_url())
 
     def get_template_context(self) -> Mapping:
         """
