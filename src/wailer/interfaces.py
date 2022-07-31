@@ -46,7 +46,7 @@ class BaseMessageType(ABC):
         return self.message.context
 
     @abstractmethod
-    def get_locale(self) -> str:
+    def get_locale(self) -> str:  # pragma: no cover
         """
         You must implement this to indicate which locale this message will be
         sent with. The locale will be set to this during all subsequent calls
@@ -61,7 +61,7 @@ class BaseMessageType(ABC):
 
 class SmsType(BaseMessageType, ABC):
     @abstractmethod
-    def get_content(self) -> str:
+    def get_content(self) -> str:  # pragma: no cover
         """
         Implement this to return the text content of the SMS
         """
@@ -69,7 +69,7 @@ class SmsType(BaseMessageType, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_to(self) -> PhoneNumber:
+    def get_to(self) -> PhoneNumber:  # pragma: no cover
         """
         Implement this to return the phone number to which the SMS must be sent
         to.
@@ -97,7 +97,7 @@ class EmailType(BaseMessageType, ABC):
     """
 
     @abstractmethod
-    def get_to(self) -> str:
+    def get_to(self) -> str:  # pragma: no cover
         """
         Return here who you want to send that email to
         """
@@ -105,7 +105,7 @@ class EmailType(BaseMessageType, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_subject(self) -> str:
+    def get_subject(self) -> str:  # pragma: no cover
         """
         Return here the subject of the email
         """
@@ -113,7 +113,7 @@ class EmailType(BaseMessageType, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_context(self) -> Mapping[str, JsonType]:
+    def get_context(self) -> Mapping[str, JsonType]:  # pragma: no cover
         """
         You must implement this method in order to provide a context for your
         templates when they get rendered.
@@ -133,7 +133,7 @@ class EmailType(BaseMessageType, ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_template_html_path(self) -> str:
+    def get_template_html_path(self) -> str:  # pragma: no cover
         """
         Implement if you want a HTML part of the email. Or don't if you don't
         want. It's just that the email provider will usually enforce at least

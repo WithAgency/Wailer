@@ -139,6 +139,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 WAILER_EMAIL_TYPES = {
     "static": "my_app.emails.Static",
+    "static-no-text": "my_app.emails.StaticNoText",
+    "static-no-html": "my_app.emails.StaticNoHtml",
     "hello": "my_app.emails.Hello",
     "hello-user": "my_app.emails.HelloUser",
 }

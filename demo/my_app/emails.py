@@ -31,6 +31,16 @@ class Static(EmailType):
         return "fr"
 
 
+class StaticNoText(Static):
+    def get_template_text_path(self) -> str:
+        raise NotImplementedError
+
+
+class StaticNoHtml(Static):
+    def get_template_html_path(self) -> str:
+        raise NotImplementedError
+
+
 class Hello(EmailType):
     """
     A nice email to say hello to people
