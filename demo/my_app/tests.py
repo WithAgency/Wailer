@@ -263,3 +263,25 @@ class TestEmailPermalink(TransactionTestCase):
             """,
             content,
         )
+
+
+class TestAbsoluteUrl(TransactionTestCase):
+    def setUp(self) -> None:
+        site = Site.objects.get(pk=1)
+        site.domain = "wailer.org"
+        site.save()
+
+    def test_straight(self):
+        email = Email.send("absolute-url-straight", {})
+        self.assertEqual(email.email.get_text_content(), "https://wailer.org/\n")
+
+    def test_as(self):
+        email = Email.send("absolute-url-as", {})
+        self.assertEqual(
+            email.email.get_text_content(),
+            "1 = , 2 = https://wailer.org/\n",
+        )
+
+    def test_make_absolute(self):
+        email = Email.send("make-absolute", {})
+        self.assertEqual(email.email.get_text_content(), "https://wailer.org/foo/bar\n")

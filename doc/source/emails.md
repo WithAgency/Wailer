@@ -330,7 +330,7 @@ you can just do:
         raise NotImplementedError
 ```
 
-## Advanced HTML topics
+## Advanced topics
 
 HTML emails are the most notoriously annoying kind of HTML to write. It did not
 evolve since its invention by Leonardo da Vinci in 1495 and email clients have
@@ -398,7 +398,7 @@ Under the hood, all the work is done by
 as much as possible.
 ```
 
-### Absolute URLs for images and links
+### Absolute URLs for images and links in HTML
 
 Since you're in an email, you need to use absolute URLs. By example, if you
 have a `<img src="/img/foo.jpg">` then it simply  won't work because the emails
@@ -432,6 +432,37 @@ will most definitely not be enough for all use cases. This is why you can
 easily override this behavior in your {py:class}`~.wailer.interfaces.EmailType`
 implementation by overloading 
 {py:meth}`~.wailer.interfaces.BaseMessageType.get_base_url`.
+
+### Absolute URLs programmatically
+
+If you need absolute URLs but you're not writing them in HTML (and thus the
+automatic insertion of the base URL won't work like above), then some template
+tags are here to help you.
+
+#### Make absolute
+
+If you have an URL and you want to make it absolute, you can do it like that:
+
+```html
+{% load wailer %}
+
+{% make_absolute "/foo/bar" %}
+<!-- Will output https://my-app.com/foo/bar -->
+```
+
+#### Absolute URL
+
+Wailer also provides an absolute version of Django's 
+[`{% url %}`](https://docs.djangoproject.com/en/4.0/ref/templates/builtins/#url) 
+tag. It works exactly the same way except it will output URLs that are 
+absolute.
+
+```html
+{% load wailer %}
+
+{% absolute_url "my_view" %}
+<!-- Will output https://my-app.com/my-view -->
+```
 
 ### Permalink to email
 

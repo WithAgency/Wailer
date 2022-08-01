@@ -93,3 +93,27 @@ class HelloUser(Hello):
 class StyledHtml(Static):
     def get_template_html_path(self) -> str:
         return "my_app/wailer/styled-html.html"
+
+
+class AbsoluteUrlStraight(Static):
+    def get_template_html_path(self) -> str:
+        raise NotImplementedError
+
+    def get_template_text_path(self) -> str:
+        return "my_app/wailer/absolute-url-straight.txt"
+
+
+class AbsoluteUrlAs(Static):
+    def get_template_html_path(self) -> str:
+        raise NotImplementedError
+
+    def get_template_text_path(self) -> str:
+        return "my_app/wailer/absolute-url-as.txt"
+
+
+class MakeAbsolute(Static):
+    def get_template_html_path(self) -> str:
+        raise NotImplementedError
+
+    def get_template_text_path(self) -> str:
+        return "my_app/wailer/make-absolute.txt"
