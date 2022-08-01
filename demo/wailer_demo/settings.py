@@ -151,4 +151,7 @@ WAILER_EMAIL_TYPES = {
     "hello": "my_app.emails.Hello",
     "hello-user": "my_app.emails.HelloUser",
     "styled-html": "my_app.emails.StyledHtml",
+    "absolute-url-straight": "my_app.emails.AbsoluteUrlStraight",
+    "absolute-url-as": "my_app.emails.AbsoluteUrlAs",
+    "make-absolute": "my_app.emails.MakeAbsolute",
 }

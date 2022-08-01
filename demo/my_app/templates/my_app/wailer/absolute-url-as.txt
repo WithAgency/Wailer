@@ -1,0 +1,1 @@
+{% load wailer %}1 = {% absolute_url "index" as the_url %}, 2 = {{ the_url }}

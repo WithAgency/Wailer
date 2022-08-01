@@ -105,6 +105,14 @@ class Email(BaseMessage):
         return type_class(self)
 
     @cached_property
+    def base_url(self) -> str:
+        """
+        A shortcut to get the underlying email's base URL
+        """
+
+        return self.email.get_base_url()
+
+    @cached_property
     def link_html(self):
         """
         Returns a relative link for this email to be seen in a browser in HTML

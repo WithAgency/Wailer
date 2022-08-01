@@ -1,0 +1,1 @@
+{% load wailer %}{% make_absolute "/foo/bar" %}
