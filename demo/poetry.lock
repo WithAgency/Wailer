@@ -171,6 +171,25 @@ messagebird = ["messagebird"]
 twilio = ["twilio"]
 
 [[package]]
+name = "django-wailer"
+version = "1.0.0-alpha.3"
+description = "A Django emailing/texting utility"
+category = "main"
+optional = false
+python-versions = "^3.8"
+develop = false
+
+[package.dependencies]
+Django = "*"
+django-phonenumber-field = {version = ">=6", extras = ["phonenumbers"]}
+django-sms = ">=0.5"
+premailer = ">=3"
+
+[package.source]
+type = "directory"
+url = ".."
+
+[[package]]
 name = "greenlet"
 version = "1.1.2"
 description = "Lightweight in-process concurrent programming"
@@ -309,29 +328,10 @@ brotli = ["brotlicffi (>=0.8.0)", "brotli (>=1.0.9)", "brotlipy (>=0.6.0)"]
 secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
-[[package]]
-name = "wailer"
-version = "1.0.0-alpha.2"
-description = "A Django emailing/texting utility"
-category = "main"
-optional = false
-python-versions = "^3.8"
-develop = false
-
-[package.dependencies]
-Django = "*"
-django-phonenumber-field = {version = ">=6", extras = ["phonenumbers"]}
-django-sms = ">=0.5"
-premailer = ">=3"
-
-[package.source]
-type = "directory"
-url = ".."
-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "3986f23ff5641715c52d49987453558d767eb3ecc66f95f6a893a816f5202c4f"
+content-hash = "fe4a279e7fe776686b7a791ab513de7feff7d7afbe2b33cd5bca4c4be3d5b6ce"
 
 [metadata.files]
 asgiref = [
@@ -413,6 +413,7 @@ cwcwidth = [
 django = []
 django-phonenumber-field = []
 django-sms = []
+django-wailer = []
 greenlet = [
     {file = "greenlet-1.1.2-cp27-cp27m-macosx_10_14_x86_64.whl", hash = "sha256:58df5c2a0e293bf665a51f8a100d3e9956febfbf1d9aaf8c0677cf70218910c6"},
     {file = "greenlet-1.1.2-cp27-cp27m-manylinux1_x86_64.whl", hash = "sha256:aec52725173bd3a7b56fe91bc56eccb26fbdff1386ef123abb63c84c5b43b63a"},
@@ -492,4 +493,3 @@ tzdata = [
     {file = "tzdata-2022.1.tar.gz", hash = "sha256:8b536a8ec63dc0751342b3984193a3118f8fca2afe25752bb9b7fffd398552d3"},
 ]
 urllib3 = []
-wailer = []

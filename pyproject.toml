@@ -1,6 +1,10 @@
 [tool.poetry]
-name = "wailer"
-version = "1.0.0-alpha.2"
+name = "django-wailer"
+version = "1.0.0-alpha.3"
+packages = [
+    {  include = "wailer", from = "src" }
+]
+
 description = "A Django emailing/texting utility"
 authors = ["Rémy Sanchez <remy.sanchez@hyperthese.net>"]
 license = "WTFPL"

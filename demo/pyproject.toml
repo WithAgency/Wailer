@@ -7,7 +7,7 @@ license = "WTFPL"
 
 [tool.poetry.dependencies]
 python = "^3.8"
-wailer = { path = ".." }
+django-wailer = { path = ".." }
 
 [tool.poetry.dev-dependencies]
 bpython = "^0.22.1"
