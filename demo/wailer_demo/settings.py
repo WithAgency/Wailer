@@ -157,10 +157,11 @@ with EnvManager() as env:
     # Emails
     # ---
 
-    match env.get("EMAILS_MODE"):
-        case "mailjet":
-            EMAIL_BACKEND = "wailer.backends.MailjetEmailBackend"
-            MAILJET_API_KEY_PUBLIC = env.get("MAILJET_API_KEY_PUBLIC")
-            MAILJET_API_KEY_PRIVATE = env.get("MAILJET_API_KEY_PRIVATE")
-        case _:
-            EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+    _emails_mode = env.get("EMAILS_MODE", default="console")
+
+    if _emails_mode == "mailjet":
+        EMAIL_BACKEND = "wailer.backends.MailjetEmailBackend"
+        MAILJET_API_KEY_PUBLIC = env.get("MAILJET_API_KEY_PUBLIC")
+        MAILJET_API_KEY_PRIVATE = env.get("MAILJET_API_KEY_PRIVATE")
+    else:
+        EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
