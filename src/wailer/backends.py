@@ -1,6 +1,6 @@
 import base64
 from email.utils import parseaddr
-from typing import List, Mapping, Sequence, Tuple, TypedDict
+from typing import List, Mapping, Sequence, Tuple, TypedDict, Union
 
 import httpx
 from django.conf import settings
@@ -99,7 +99,7 @@ def convert_attachment(attachment: Tuple[str, bytes, str]) -> "Attachment":
 
 
 def by_alternatives(
-    message: EmailMultiAlternatives | EmailMessage,
+    message: Union[EmailMultiAlternatives, EmailMessage],
 ) -> Mapping[str, str]:
     """
     Flattens all alternatives of this email in order to receive them indexed
@@ -204,7 +204,9 @@ class MailjetEmailBackend(MailjetClient, BaseEmailBackend):
     Emails are a mess, maybe (probably) some edge cases have been left out.
     """
 
-    def make_message(self, message: EmailMessage | EmailMultiAlternatives) -> Message:
+    def make_message(
+        self, message: Union[EmailMessage, EmailMultiAlternatives]
+    ) -> Message:
         """
         Doing our best to guess from the EmailMessage what we should send to
         the API. If there are any edge cases, take care of them here.

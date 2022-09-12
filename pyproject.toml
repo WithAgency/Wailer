@@ -35,7 +35,7 @@ premailer = ">=3"
 django-sms = ">=0.5"
 django-phonenumber-field = {extras = ["phonenumbers"], version = ">=6"}
 httpx = "*"
-typing-extensions = "^4.3.0"
+typing-extensions = ">=4"
 
 [tool.poetry.dev-dependencies]
 isort = "^5.10.1"
