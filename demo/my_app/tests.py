@@ -1,9 +1,15 @@
 from django.contrib.sites.models import Site
 from django.core import mail
 from django.core.mail import EmailMultiAlternatives
-from django.test import TransactionTestCase, modify_settings, override_settings
+from django.test import (
+    SimpleTestCase,
+    TransactionTestCase,
+    modify_settings,
+    override_settings,
+)
 from my_app.models import User
 
+from wailer.backends import parse_email_address
 from wailer.errors import WailerTemplateException
 from wailer.models import Email
 
@@ -285,3 +291,15 @@ class TestAbsoluteUrl(TransactionTestCase):
     def test_make_absolute(self):
         email = Email.send("make-absolute", {})
         self.assertEqual(email.email.get_text_content(), "https://wailer.org/foo/bar\n")
+
+
+class TestMailjetEmailBackend(SimpleTestCase):
+    def test_parse_email_address(self):
+        self.assertEqual(parse_email_address("foo@bar.com"), dict(Email="foo@bar.com"))
+        self.assertEqual(
+            parse_email_address("Foo <foo@bar.com>"),
+            dict(Email="foo@bar.com", Name="Foo"),
+        )
+
+        with self.assertRaisesMessage(ValueError, "Invalid e-mail format: <<<"):
+            parse_email_address("<<<")

@@ -13,6 +13,7 @@ Welcome to Wailer's documentation!
    installation
    emails
    settings
+   backends
    reference
    contributing
 
