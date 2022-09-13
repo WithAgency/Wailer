@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-13 14:00+0000\n"
-"PO-Revision-Date: 2022-09-13 17:04+0200\n"
+"POT-Creation-Date: 2022-09-13 18:07+0000\n"
+"PO-Revision-Date: 2022-09-13 20:07+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -18,16 +18,20 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Poedit 2.4.2\n"
 
-#: my_app/emails.py:61
+#: my_app/emails.py:61 my_app/sms.py:45
 #, python-format
 msgid "Hello %(name)s"
 msgstr "Salut %(name)s"
 
-#: my_app/sms.py:14
+#: my_app/sms.py:20
 #, python-format
-#| msgid "Hello %(name)s"
 msgid "Hello %(word)s!"
 msgstr "Bonjour %(word)s !"
+
+#: my_app/sms.py:62
+#, python-format
+msgid "Hello %(name)s, come home to: %(url)s"
+msgstr "Salut %(name)s, viens à la maison ici : %(url)s"
 
 #: my_app/templates/my_app/wailer/hello.html:5
 #, python-format

@@ -83,6 +83,17 @@ will be activated during content render.
         return _(f"Hello %(name)s") % dict(name=self.context["name"])
 ```
 
+Let's also note that if you wanted to make a link to the website itself, it's
+easy to get an absolute URL to insert into your content:
+
+```python
+    def get_content(self) -> str:
+        return _("Hello %(name)s, come home to: %(url)s") % dict(
+            name=self.context["name"],
+            url=self.make_absolute("/"),
+        )
+```
+
 ## Registering the type
 
 You need to register your email type in `settings.py`, much like you would for

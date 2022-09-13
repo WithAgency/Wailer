@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Mapping, Sequence, Union
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -157,6 +158,19 @@ class SmsType(BaseMessageType, ABC):
         """
 
         raise NotImplementedError
+
+    def make_absolute(self, url: str):
+        """
+        Convenience function to transform an URL into something absolute with
+        the same logic as for emails.
+
+        Parameters
+        ----------
+        url
+            Any URL
+        """
+
+        return urljoin(self.get_base_url(), url)
 
 
 class EmailType(BaseMessageType, ABC):
