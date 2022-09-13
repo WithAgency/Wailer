@@ -166,7 +166,11 @@ class Email(BaseMessage):
 
 
 class Sms(BaseMessage):
-    sender = PhoneNumberField(null=True, blank=True)
+    sender = models.CharField(
+        default="",
+        blank=True,
+        max_length=100,
+    )
     recipient = PhoneNumberField()
 
     @classmethod
@@ -196,9 +200,13 @@ class Sms(BaseMessage):
 
         obj.sender = obj.sms.get_from()
         obj.recipient = obj.sms.get_to()
+        obj.context = obj.sms.get_context()
+
         obj.save()
 
         obj.send_now()
+
+        return obj
 
     @cached_property
     def sms(self) -> SmsType:

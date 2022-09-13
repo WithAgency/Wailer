@@ -153,6 +153,10 @@ with EnvManager() as env:
         "make-absolute": "my_app.emails.MakeAbsolute",
     }
 
+    WAILER_SMS_TYPES = {
+        "hello": "my_app.sms.Hello",
+    }
+
     # ---
     # Emails
     # ---
@@ -165,3 +169,15 @@ with EnvManager() as env:
         MAILJET_API_KEY_PRIVATE = env.get("MAILJET_API_KEY_PRIVATE")
     else:
         EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+    # ---
+    # SMS
+    # ---
+
+    _sms_mode = env.get("SMS_MODE", default="console")
+
+    if _sms_mode == "mailjet":
+        SMS_BACKEND = "wailer.backends.MailjetSmsBackend"
+        MAILJET_API_TOKEN = env.get("MAILJET_API_TOKEN")
+    else:
+        SMS_BACKEND = "sms.backends.console.SmsBackend"

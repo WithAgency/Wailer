@@ -1,3 +1,5 @@
+import sms
+from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core import mail
 from django.core.mail import EmailMultiAlternatives
@@ -8,10 +10,11 @@ from django.test import (
     override_settings,
 )
 from my_app.models import User
+from sms.message import Message as SmsMessage
 
 from wailer.backends import parse_email_address
 from wailer.errors import WailerTemplateException
-from wailer.models import Email
+from wailer.models import Email, Sms
 
 
 class TestStaticEmail(TransactionTestCase):
@@ -303,3 +306,26 @@ class TestMailjetEmailBackend(SimpleTestCase):
 
         with self.assertRaisesMessage(ValueError, "Invalid e-mail format: <<<"):
             parse_email_address("<<<")
+
+
+class TestSendSms(TransactionTestCase):
+    def setUp(self) -> None:
+        self.sms = Sms.send("hello", {"word": "Foo"})
+
+    def test_locmem_backend(self):
+        self.assertEqual(settings.SMS_BACKEND, "sms.backends.locmem.SmsBackend")
+
+    def get_sent_sms(self) -> SmsMessage:
+        self.assertEqual(len(sms.outbox), 1)  # noqa
+        return sms.outbox[0]  # noqa
+
+    def test_get_to(self):
+        sent = self.get_sent_sms()
+        self.assertEqual(sent.recipients, ["+34659424242"])
+
+    def test_rendered_text(self):
+        sent = self.get_sent_sms()
+        self.assertEqual(sent.body, "Bonjour Foo\xa0!")
+
+    def test_context(self):
+        self.assertEqual(self.sms.context["word"], "Foo")

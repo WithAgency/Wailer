@@ -1,12 +1,14 @@
 import base64
 from email.utils import parseaddr
-from typing import List, Mapping, Sequence, Tuple, TypedDict, Union
+from typing import Iterator, List, Mapping, Sequence, Tuple, TypedDict, Union
 
 import httpx
 from django.conf import settings
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.core.mail.backends.base import BaseEmailBackend
 from django.utils.encoding import force_bytes
+from sms.backends.base import BaseSmsBackend
+from sms.message import Message as SmsMessage
 from typing_extensions import NotRequired
 
 HEADERS_BLACKLIST = set(
@@ -165,6 +167,12 @@ class SendEmailOutput(TypedDict):
     Messages: List[MessageOutput]
 
 
+class SendSmsRequest(TypedDict):
+    From: str
+    To: str
+    Text: str
+
+
 class MailjetClient:
     """
     Mixin to help getting a HTTPX client pre-configured for Mailjet's API
@@ -178,7 +186,7 @@ class MailjetClient:
 
         return getattr(settings, "MAILJET_BASE_URL", "https://api.mailjet.com")
 
-    def make_client(self) -> httpx.Client:
+    def make_auth_client(self) -> httpx.Client:
         """
         Creating a HTTPX client with the base URL and the authentication
         already configured from Django settings to make sure that it's super
@@ -191,6 +199,18 @@ class MailjetClient:
                 settings.MAILJET_API_KEY_PUBLIC,
                 settings.MAILJET_API_KEY_PRIVATE,
             ),
+        )
+
+    def make_bearer_client(self) -> httpx.Client:
+        """
+        Creating a HTTPX client with the base URL and the authentication
+        already configured from Django settings to make sure that it's super
+        easy to make HTTP queries.
+        """
+
+        return httpx.Client(
+            base_url=self.base_url,
+            headers=dict(Authorization=f"Bearer {settings.MAILJET_API_TOKEN}"),
         )
 
 
@@ -258,7 +278,7 @@ class MailjetEmailBackend(MailjetClient, BaseEmailBackend):
             Messages=[self.make_message(x) for x in email_messages]
         )
 
-        with self.make_client() as client:
+        with self.make_auth_client() as client:
             resp = client.post("/v3.1/send", json=payload)
 
             if not resp.is_success:
@@ -267,3 +287,42 @@ class MailjetEmailBackend(MailjetClient, BaseEmailBackend):
         output: SendEmailOutput = resp.json()
 
         return sum(1 if x["Status"] == "success" else 0 for x in output["Messages"])
+
+
+class MailjetSmsBackend(MailjetClient, BaseSmsBackend):
+    """
+    A Mailjet backend for Django-SMS
+    """
+
+    def make_message(self, message: SmsMessage) -> Iterator[SendSmsRequest]:
+        """
+        There is no bulk SMS send with Mailjet (or is there?) so we'll send
+        and transform each message individually, including for each recipient.
+        That's why for a single message input, you can get several requests
+        going out.
+        """
+
+        for to in message.recipients:
+            yield SendSmsRequest(
+                From=message.originator,
+                To=to,
+                Text=message.body,
+            )
+
+    def send_messages(self, messages: List[SmsMessage]) -> int:
+        """
+        Transforming a list of messages into a list of requests to Mailjet
+        to be able to send those to clients.
+        """
+
+        sent = 0
+
+        with self.make_bearer_client() as client:
+            for message in messages:
+                for call in self.make_message(message):
+                    resp = client.post("/v4/sms-send", json=call)
+
+                    if resp.is_success:
+                        sent += 1
+
+        return sent
