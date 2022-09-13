@@ -47,7 +47,10 @@ class Email(BaseMessage):
 
     @classmethod
     def send(
-        cls, type_: str, data: JsonType, user: Optional[models.Model] = None
+        cls,
+        type_: str,
+        data: JsonType,
+        user: Optional[models.Model] = None,
     ) -> "Email":
         """
         Call this to immediately send the email with the appropriate data.
@@ -174,7 +177,12 @@ class Sms(BaseMessage):
     recipient = PhoneNumberField()
 
     @classmethod
-    def send(cls, type_: str, data: Any):
+    def send(
+        cls,
+        type_: str,
+        data: Any,
+        user: Optional[models.Model] = None,
+    ):
         """
         Call this to immediately send the SMS with the appropriate data.
 
@@ -189,6 +197,12 @@ class Sms(BaseMessage):
             Data that the SMS type will be using, but also that will be
             saved into DB for restitution later (so must be serializable to
             JSON).
+        user
+            User concerned by this SMS. Not mandatory but it's recommended
+            to fill it up when sending an email to a user from the DB so that
+            it's easy to delete emails (and thus their content) associated to
+            this user when they delete their account or exert any kind of
+            GDPR rights.
         """
 
         assert type_ in settings.WAILER_SMS_TYPES
@@ -196,6 +210,7 @@ class Sms(BaseMessage):
         obj = Sms(
             data=data,
             type=type_,
+            for_user=user,
         )
 
         obj.sender = obj.sms.get_from()

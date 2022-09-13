@@ -329,3 +329,42 @@ class TestSendSms(TransactionTestCase):
 
     def test_context(self):
         self.assertEqual(self.sms.context["word"], "Foo")
+
+
+class TestHelloUserSms(TransactionTestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(
+            username="test",
+            email="john.doe@example.org",
+            first_name="John",
+            last_name="Doe",
+            locale="fr",
+            phone_number="+34659424242",
+        )
+        self.sms = Sms.send("hello-user", dict(user_id=self.user.id), self.user)
+
+    def get_sent_sms(self) -> SmsMessage:
+        self.assertEqual(len(sms.outbox), 1)  # noqa
+        return sms.outbox[0]  # noqa
+
+    def test_body(self):
+        sent = self.get_sent_sms()
+        self.assertEqual(sent.body, "Salut John Doe")
+
+    def test_get_to(self):
+        sent = self.get_sent_sms()
+        self.assertEqual(sent.recipients, ["+34659424242"])
+
+    def test_after_user_change(self):
+        self.user.first_name = "Jack"
+        self.user.save()
+
+        self.sms.send_now()
+        sent = sms.outbox[-1]  # noqa
+
+        self.assertEqual(sent.body, "Salut John Doe")
+
+    def test_delete_after_user(self):
+        self.assertTrue(Sms.objects.filter(pk=self.sms.pk).exists())
+        self.user.delete()
+        self.assertFalse(Sms.objects.filter(pk=self.sms.pk).exists())

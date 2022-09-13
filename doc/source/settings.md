@@ -20,12 +20,23 @@ WAILER_EMAIL_TYPES = {
 }
 ```
 
+## Declaring SMS types
+
+Same as for the emails, but for SMS types, you can define `WAILER_SMS_TYPES`.
+
+```python
+WAILER_SMS_TYPES = {
+    "hello": "my_app.sms.Hello",
+    "hello-user": "my_app.sms.HelloUser",
+}
+```
+
 ## Setting the base URL
 
 When generating absolute links from inside the email, several settings can be
 used:
 
-- `WAILER_BASE_URL` &mdash; To manually set the base URL of your site
-- `WAILER_SITE_ID` &mdash; To select a site from the sites framework
-- `SITE_ID` &mdash; Not wailer-specific, that's a setting from the sites 
-  framework that will determine which is the default site to use
+-   `WAILER_BASE_URL` &mdash; To manually set the base URL of your site
+-   `WAILER_SITE_ID` &mdash; To select a site from the sites framework
+-   `SITE_ID` &mdash; Not wailer-specific, that's a setting from the sites
+    framework that will determine which is the default site to use
