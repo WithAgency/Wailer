@@ -12,7 +12,9 @@ Welcome to Wailer's documentation!
 
    installation
    emails
+   sms
    settings
+   backends
    reference
    contributing
 

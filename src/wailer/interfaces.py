@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Mapping, Sequence, Union
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -57,6 +58,26 @@ class BaseMessageType(ABC):
 
         Let's note that the message's context is NOT available at this stage
         so you should definitely not rely on it. You can use self.data though.
+        """
+
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_context(self) -> Mapping[str, JsonType]:  # pragma: no cover
+        """
+        You must implement this method in order to provide a context for your
+        templates when they get rendered.
+
+        It's important to mention that this method will be called only once at
+        the time of creation of this email. Indeed, emails are immutable once
+        sent so there is no reason that the context should change between
+        calls. This prevents from having the content of the email changing.
+
+        As a result, the value out of this function will be stored into DB and
+        must be JSON-serializable.
+
+        This function is called within the locale returned by
+        :py:meth:`BaseMessageType.get_locale`
         """
 
         raise NotImplementedError
@@ -129,18 +150,27 @@ class SmsType(BaseMessageType, ABC):
 
         raise NotImplementedError
 
-    def get_from(self) -> PhoneNumber:
+    @abstractmethod
+    def get_from(self) -> str:  # pragma: no cover
         """
-        Guesses the sender number based on the "to" number's country. Feel free
-        to override this method to change this behaviour if you need to (but
-        the default behaviour should make sense).
+        Returns an ID for your SMS sender. That's probably dependent on what
+        your provider(s) will accept. Up to you!
         """
 
-        for num in settings.WAILER_SMS_SENDERS:
-            sender = parse(num)
+        raise NotImplementedError
 
-            if sender.country_code == self.get_to().country_code:
-                return sender
+    def make_absolute(self, url: str):
+        """
+        Convenience function to transform an URL into something absolute with
+        the same logic as for emails.
+
+        Parameters
+        ----------
+        url
+            Any URL
+        """
+
+        return urljoin(self.get_base_url(), url)
 
 
 class EmailType(BaseMessageType, ABC):
@@ -160,26 +190,6 @@ class EmailType(BaseMessageType, ABC):
     def get_subject(self) -> str:  # pragma: no cover
         """
         Return here the subject of the email
-        """
-
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_context(self) -> Mapping[str, JsonType]:  # pragma: no cover
-        """
-        You must implement this method in order to provide a context for your
-        templates when they get rendered.
-
-        It's important to mention that this method will be called only once at
-        the time of creation of this email. Indeed, emails are immutable once
-        sent so there is no reason that the context should change between
-        calls. This prevents from having the content of the email changing.
-
-        As a result, the value out of this function will be stored into DB and
-        must be JSON-serializable.
-
-        This function is called within the locale returned by
-        :py:meth:`BaseMessageType.get_locale`
         """
 
         raise NotImplementedError

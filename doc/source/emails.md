@@ -398,6 +398,7 @@ Under the hood, all the work is done by
 as much as possible.
 ```
 
+(absolute_url)=
 ### Absolute URLs for images and links in HTML
 
 Since you're in an email, you need to use absolute URLs. By example, if you
