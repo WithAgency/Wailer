@@ -42,7 +42,7 @@ class HelloUser(SmsType):
         return User.objects.get(pk=self.data["user_id"])
 
     def get_content(self) -> str:
-        return _(f"Hello %(name)s") % dict(name=self.context["name"])
+        return _("Hello %(name)s") % dict(name=self.context["name"])
 
     def get_to(self) -> str:
         return self.user.phone_number
@@ -55,3 +55,15 @@ class HelloUser(SmsType):
 
     def get_locale(self) -> str:
         return self.context["locale"]
+
+
+class ComeHomeUser(HelloUser):
+    """
+    Same as the HelloUser but demonstrating how to get an absolute URL
+    """
+
+    def get_content(self) -> str:
+        return _("Hello %(name)s, come home to: %(url)s") % dict(
+            name=self.context["name"],
+            url=self.make_absolute("/"),
+        )

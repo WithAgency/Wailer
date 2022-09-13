@@ -156,6 +156,7 @@ with EnvManager() as env:
     WAILER_SMS_TYPES = {
         "hello": "my_app.sms.Hello",
         "hello-user": "my_app.sms.HelloUser",
+        "come-home": "my_app.sms.ComeHomeUser",
     }
 
     # ---

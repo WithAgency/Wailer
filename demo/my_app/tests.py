@@ -368,3 +368,27 @@ class TestHelloUserSms(TransactionTestCase):
         self.assertTrue(Sms.objects.filter(pk=self.sms.pk).exists())
         self.user.delete()
         self.assertFalse(Sms.objects.filter(pk=self.sms.pk).exists())
+
+
+class TestComeHomeUserSms(TransactionTestCase):
+    def setUp(self) -> None:
+        self.user = User.objects.create_user(
+            username="test",
+            email="john.doe@example.org",
+            first_name="John",
+            last_name="Doe",
+            locale="fr",
+            phone_number="+34659424242",
+        )
+        self.sms = Sms.send("come-home", dict(user_id=self.user.id), self.user)
+
+    def get_sent_sms(self) -> SmsMessage:
+        self.assertEqual(len(sms.outbox), 1)  # noqa
+        return sms.outbox[0]  # noqa
+
+    def test_body(self):
+        sent = self.get_sent_sms()
+        self.assertEqual(
+            sent.body,
+            "Salut John Doe, viens à la maison ici : https://example.com/",
+        )
