@@ -20,6 +20,14 @@ In order to use Mailjet, you need to set the following Django settings:
 -   `MAILJET_API_KEY_PUBLIC` &mdash; Contains the public API key
 -   `MAILJET_API_KEY_PRIVATE` &mdash; Contains the private API key
 
+### Mandrill
+
+An Mandrill backend is also available.
+
+-   `EMAIL_BACKEND` &mdash; Must be set to
+    `"wailer.backends.MandrillEmailBackend"`
+-   `MANDRILL_API_KEY` &mdash; Contains the API key
+
 ## SMS
 
 ### Mailjet

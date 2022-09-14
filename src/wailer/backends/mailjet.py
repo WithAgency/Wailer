@@ -11,6 +11,8 @@ from sms.backends.base import BaseSmsBackend
 from sms.message import Message as SmsMessage
 from typing_extensions import NotRequired
 
+from ._utils import by_alternatives
+
 HEADERS_BLACKLIST = set(
     x.lower()
     for x in [
@@ -98,30 +100,6 @@ def convert_attachment(attachment: Tuple[str, bytes, str]) -> "Attachment":
         ContentType=attachment[2],
         Base64Content=base64.b64encode(force_bytes(attachment[1])).decode(),
     )
-
-
-def by_alternatives(
-    message: Union[EmailMultiAlternatives, EmailMessage],
-) -> Mapping[str, str]:
-    """
-    Flattens all alternatives of this email in order to receive them indexed
-    by mime type.
-
-    Parameters
-    ----------
-    message
-        An email message
-    """
-
-    def list_all():
-        if message.body:
-            yield f"text/{message.content_subtype}", message.body
-
-        if isinstance(message, EmailMultiAlternatives):
-            for alt, mime in message.alternatives:
-                yield mime, alt
-
-    return dict(list_all())
 
 
 class EmailAddress(TypedDict):

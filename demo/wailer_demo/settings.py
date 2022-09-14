@@ -169,6 +169,9 @@ with EnvManager() as env:
         EMAIL_BACKEND = "wailer.backends.MailjetEmailBackend"
         MAILJET_API_KEY_PUBLIC = env.get("MAILJET_API_KEY_PUBLIC")
         MAILJET_API_KEY_PRIVATE = env.get("MAILJET_API_KEY_PRIVATE")
+    elif _email_mode == "mandrill":
+        EMAIL_BACKEND = "wailer.backends.MandrillEmailBackend"
+        MANDRILL_API_KEY = env.get("MANDRILL_API_KEY")
     else:
         EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 
