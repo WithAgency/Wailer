@@ -12,7 +12,7 @@ from django.test import (
 from my_app.models import User
 from sms.message import Message as SmsMessage
 
-from wailer.backends import parse_email_address
+from wailer.backends.mailjet import parse_email_address
 from wailer.errors import WailerTemplateException
 from wailer.models import Email, Sms
 
