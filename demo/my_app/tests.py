@@ -9,6 +9,7 @@ from django.test import (
     modify_settings,
     override_settings,
 )
+from django.utils.encoding import force_bytes
 from my_app.models import User
 from sms.message import Message as SmsMessage
 
@@ -135,6 +136,31 @@ class TestHelloMjml(TransactionTestCase):
         content, mime = sent.alternatives[0]
         self.assertEqual(mime, "text/html")
         self.assertInHTML("Bonjour, John Doe!", content, count=1)
+
+
+class TestHelloAttachment(TransactionTestCase):
+    def setUp(self) -> None:
+        self.email = Email.send(
+            "hello-attachment",
+            dict(
+                first_name="John",
+                last_name="Doe",
+                email="john.doe@example.org",
+                locale="fr",
+            ),
+        )
+
+    def get_sent_mail(self) -> EmailMultiAlternatives:
+        self.assertEqual(len(mail.outbox), 1)
+        return mail.outbox[0]
+
+    def test_rendered_html(self):
+        sent = self.get_sent_mail()
+        self.assertEqual(len(sent.attachments), 1)
+        filename, content, mimetype = sent.attachments[0]
+        self.assertEqual(filename, "hello.txt")
+        self.assertEqual(force_bytes(content), b"\x00\x01\x02")
+        self.assertEqual(mimetype, "application/octet-stream")
 
 
 class TestHelloUser(TransactionTestCase):
