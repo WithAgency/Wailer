@@ -1,10 +1,10 @@
-from typing import Mapping
+from typing import Iterable, Mapping
 
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
 from my_app.models import User
 
-from wailer.interfaces import EmailType, JsonType
+from wailer.interfaces import EmailAttachment, EmailType, JsonType
 
 
 class Static(EmailType):
@@ -74,6 +74,17 @@ class HelloMjml(Hello):
 
     def get_template_html_path(self) -> str:
         return "my_app/wailer/hello.mjml"
+
+
+class HelloAttachment(Hello):
+    """
+    Same concept as the Hello mail except it has an attachment
+    """
+
+    def get_attachments(self) -> Iterable[EmailAttachment]:
+        return [
+            EmailAttachment("hello.txt", b"\x00\x01\x02", "application/octet-stream")
+        ]
 
 
 class HelloUser(Hello):

@@ -2,7 +2,7 @@ from typing import Any, Optional, Type
 from uuid import uuid4
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.db import models
 from django.urls import reverse
 from django.utils.functional import cached_property
@@ -156,13 +156,21 @@ class Email(BaseMessage):
             except NotImplementedError:
                 html_content = None
 
-            send_mail(
+            mail = EmailMultiAlternatives(
                 subject=self.email.get_subject(),
-                message=text_content,
+                body=text_content,
                 from_email=self.email.get_from(),
-                recipient_list=[self.email.get_to()],
-                html_message=html_content,
+                to=[self.email.get_to()],
             )
+
+            if html_content:
+                mail.attach_alternative(html_content, "text/html")
+
+            for attachment in self.email.get_attachments():
+                mail.attach(*attachment)
+
+            mail.send()
+
             Email.objects.filter(pk=self.pk).update(
                 date_sent=now(), recipient=self.recipient, sender=self.sender
             )

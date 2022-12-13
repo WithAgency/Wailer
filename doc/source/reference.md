@@ -107,6 +107,12 @@ Those interfaces help you implement your own custom behaviors.
 .. autoclass:: wailer.interfaces.EmailType
    :members:
 ```
+#### Attachments
+
+```{eval-rst}
+.. autoclass:: wailer.interfaces.EmailAttachment
+   :members:
+```
 
 ### SMS types
 
