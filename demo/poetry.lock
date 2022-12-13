@@ -244,7 +244,7 @@ Django = "*"
 django-phonenumber-field = {version = ">=6", extras = ["phonenumbers"]}
 django-sms = ">=0.5"
 httpx = "*"
-node-edge = "^0.1.0b4"
+node-edge = "^0.1.0b5"
 premailer = ">=3"
 typing-extensions = ">=4"
 
@@ -430,14 +430,11 @@ PyYAML = ">=6.0"
 
 [[package]]
 name = "node-edge"
-version = "0.1.0b4"
+version = "0.1.0b5"
 description = "A tool to run Node code from Python"
 category = "main"
 optional = false
 python-versions = ">=3.10,<4.0"
-
-[package.dependencies]
-xdg = ">=5.1.1,<6.0.0"
 
 [[package]]
 name = "parso"
@@ -687,14 +684,6 @@ description = "Measures the displayed width of unicode strings in a terminal"
 category = "dev"
 optional = false
 python-versions = "*"
-
-[[package]]
-name = "xdg"
-version = "5.1.1"
-description = "Variables defined by the XDG Base Directory Specification"
-category = "main"
-optional = false
-python-versions = ">=3.6,<4.0"
 
 [metadata]
 lock-version = "1.1"
@@ -991,8 +980,8 @@ modelw-env-manager = [
     {file = "modelw_env_manager-1.0.0b2.tar.gz", hash = "sha256:caa21f287e0b9c386dab0e2335aa6f8fd4b55ed346e020a8705a9b2646e1c5b6"},
 ]
 node-edge = [
-    {file = "node_edge-0.1.0b4-py3-none-any.whl", hash = "sha256:3436ec110100ff3e18f5ea259a60166f0741e48b7c77586681dd8bece4d6a5f0"},
-    {file = "node_edge-0.1.0b4.tar.gz", hash = "sha256:9d200d6f77c4074dfef9846a15316cfdbe2c51c9dfbf6a8039dc9eaa0c8ab170"},
+    {file = "node_edge-0.1.0b5-py3-none-any.whl", hash = "sha256:4f6261aa6515c778e8f755e2a343feee038fe2d899492da3a4c7d6c8728a0b54"},
+    {file = "node_edge-0.1.0b5.tar.gz", hash = "sha256:3891d3e8f67e5af87d18f9034196a90f05ca6f91a5863ff395ab2ff63affe1fb"},
 ]
 parso = [
     {file = "parso-0.8.3-py2.py3-none-any.whl", hash = "sha256:c001d4636cd3aecdaf33cbb40aebb59b094be2a74c556778ef5576c175e19e75"},
@@ -1123,8 +1112,4 @@ urllib3 = [
 wcwidth = [
     {file = "wcwidth-0.2.5-py2.py3-none-any.whl", hash = "sha256:beb4802a9cebb9144e99086eff703a642a13d6a0052920003a230f3294bbe784"},
     {file = "wcwidth-0.2.5.tar.gz", hash = "sha256:c4d647b99872929fdb7bdcaa4fbe7f01413ed3d98077df798530e5b04f116c83"},
-]
-xdg = [
-    {file = "xdg-5.1.1-py3-none-any.whl", hash = "sha256:865a7b56ed1d4cd2fce2ead1eddf97360843619757f473cd90b75f1817ca541d"},
-    {file = "xdg-5.1.1.tar.gz", hash = "sha256:aa619f26ccec6088b2a6018721d4ee86e602099b24644a90a8d3308a25acd06c"},
 ]
