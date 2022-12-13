@@ -67,6 +67,15 @@ class Hello(EmailType):
         return "my_app/wailer/hello.txt"
 
 
+class HelloMjml(Hello):
+    """
+    Same concept as the Hello mail except it's rendered from MJML
+    """
+
+    def get_template_html_path(self) -> str:
+        return "my_app/wailer/hello.mjml"
+
+
 class HelloUser(Hello):
     """
     The same as Hello, however with live data from a user to demonstrate how

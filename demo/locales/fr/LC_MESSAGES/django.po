@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-09-13 18:07+0000\n"
-"PO-Revision-Date: 2022-09-13 20:07+0200\n"
+"POT-Creation-Date: 2022-12-13 19:33+0000\n"
+"PO-Revision-Date: 2022-12-13 20:33+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: fr\n"
@@ -28,7 +28,7 @@ msgstr "Salut %(name)s"
 msgid "Hello %(word)s!"
 msgstr "Bonjour %(word)s !"
 
-#: my_app/sms.py:62
+#: my_app/sms.py:66
 #, python-format
 msgid "Hello %(name)s, come home to: %(url)s"
 msgstr "Salut %(name)s, viens à la maison ici : %(url)s"
@@ -47,6 +47,12 @@ msgstr ""
 "\n"
 "    <p>Comment allez-vous aujourd'hui&nbsp;?</p>\n"
 "    "
+
+#: my_app/templates/my_app/wailer/hello.mjml:12
+#, python-format
+#| msgid "Hello %(name)s"
+msgid "Hello, %(name)s!"
+msgstr "Bonjour, %(name)s!"
 
 #: my_app/templates/my_app/wailer/hello.txt:1
 #, python-format
