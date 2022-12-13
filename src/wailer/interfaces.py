@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Mapping, Sequence, Union
+from typing import TYPE_CHECKING, Iterable, Mapping, NamedTuple, Sequence, Union
 from urllib.parse import urljoin
 
 from django.conf import settings
@@ -174,6 +174,16 @@ class SmsType(BaseMessageType, ABC):
         return urljoin(self.get_base_url(), url)
 
 
+class EmailAttachment(NamedTuple):
+    """
+    Represents an attachment for an email
+    """
+
+    filename: str
+    content: bytes
+    mimetype: str
+
+
 class EmailType(BaseMessageType, ABC):
     """
     Implement this interface in order to provide your own email type.
@@ -283,3 +293,11 @@ class EmailType(BaseMessageType, ABC):
         """
 
         return dict(self=self.message, **self.message.context)
+
+    def get_attachments(self) -> Iterable[EmailAttachment]:
+        """
+        Override this to add attachments to the email. Return an iterable of
+        :py:class:`EmailAttachment` objects.
+        """
+
+        return []

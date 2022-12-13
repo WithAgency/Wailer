@@ -147,6 +147,7 @@ with EnvManager() as env:
         "static-no-html": "my_app.emails.StaticNoHtml",
         "hello": "my_app.emails.Hello",
         "hello-mjml": "my_app.emails.HelloMjml",
+        "hello-attachment": "my_app.emails.HelloAttachment",
         "hello-user": "my_app.emails.HelloUser",
         "styled-html": "my_app.emails.StyledHtml",
         "absolute-url-straight": "my_app.emails.AbsoluteUrlStraight",

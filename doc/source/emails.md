@@ -214,6 +214,7 @@ a recap.
 | `get_subject()`            | Discouraged | Yes            | Yes    |
 | `get_template_html_path()` | Discouraged | Yes            | Yes    |
 | `get_template_text_path()` | Discouraged | Yes            | Yes    |
+| `get_attachments()`        | Discouraged | Yes            | Yes    |
 
 ## With live data
 
@@ -491,6 +492,23 @@ The {py:attr}`~.wailer.models.Email.link_html` and
 {py:attr}`~.wailer.models.Email.link_text` attributes are not absolute URLs.
 Here we rely on Wailer's ability to automatically transform relative URLs into
 absolute ones in HTML templates in order for this link to work.
+```
+
+### Attachments
+
+If you want to add attachments to the email, you can override the 
+{py:meth}`~.wailer.interfaces.EmailType.get_attachments` method and return the
+list of attachments to be added.
+
+Attachments have to be fitting into memory, and as a general rule most of email
+providers will not allow attachments of more than 10 Mio.
+
+Here is a simple example of how to add an attachment, by implementing 
+{py:meth}`~.wailer.interfaces.EmailType.get_attachments`:
+
+```python
+    def get_attachments(self) -> Iterable[EmailAttachment]:
+        return [EmailAttachment("hello.txt", b"\x00\x01\x02", "application/octet-stream")]
 ```
 
 ## Conclusion
