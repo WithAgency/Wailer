@@ -15,6 +15,7 @@ Welcome to Wailer's documentation!
    sms
    settings
    backends
+   mjml
    reference
    contributing
 

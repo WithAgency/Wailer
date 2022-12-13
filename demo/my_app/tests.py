@@ -113,6 +113,30 @@ class TestHello(TransactionTestCase):
         self.assertInHTML("Bonjour, John Doe!", content, count=1)
 
 
+class TestHelloMjml(TransactionTestCase):
+    def setUp(self) -> None:
+        self.email = Email.send(
+            "hello-mjml",
+            dict(
+                first_name="John",
+                last_name="Doe",
+                email="john.doe@example.org",
+                locale="fr",
+            ),
+        )
+
+    def get_sent_mail(self) -> EmailMultiAlternatives:
+        self.assertEqual(len(mail.outbox), 1)
+        return mail.outbox[0]
+
+    def test_rendered_html(self):
+        sent = self.get_sent_mail()
+        self.assertEqual(len(sent.alternatives), 1)
+        content, mime = sent.alternatives[0]
+        self.assertEqual(mime, "text/html")
+        self.assertInHTML("Bonjour, John Doe!", content, count=1)
+
+
 class TestHelloUser(TransactionTestCase):
     def setUp(self) -> None:
         self.user = User.objects.create_user(

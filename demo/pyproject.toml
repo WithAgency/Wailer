@@ -6,7 +6,7 @@ authors = ["Rémy Sanchez <remy.sanchez@hyperthese.net>"]
 license = "WTFPL"
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = "^3.10"
 django-wailer = { path = ".." }
 modelw-env-manager = "^1.0.0-alpha.5"
 

@@ -4,11 +4,12 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.template.loader import render_to_string
-from phonenumbers import PhoneNumber, parse
+from node_edge import NodeEngine
+from phonenumbers import PhoneNumber
 from premailer import transform
 
 from .errors import WailerTemplateException
-from .utils import is_loopback
+from .utils import MjmlPremailer, is_loopback
 
 if TYPE_CHECKING:
     from .models import BaseMessage
@@ -242,12 +243,33 @@ class EmailType(BaseMessageType, ABC):
 
         HTML is transformed using Premailer to do various email things like
         inlining the CSS and changing relative links to absolute links.
+
+        If the HTML template file name ends up in `.mjml` then it will be
+        rendered through MJML first.
         """
 
+        path = self.get_template_html_path()
         html = render_to_string(
             self.get_template_html_path(), self.get_template_context()
         )
-        return transform(html, base_url=self.get_base_url())
+
+        if path.lower().endswith(".html"):
+            return transform(html, base_url=self.get_base_url())
+        elif path.lower().endswith(".mjml"):
+            with NodeEngine({"dependencies": {"mjml": "~4.13.0"}}) as engine:
+                mjml = engine.import_from("mjml")
+                mjml_render = mjml(
+                    html,
+                    {
+                        "minify": True,
+                        "validationLevel": "strict",
+                    },
+                )
+
+                return MjmlPremailer(
+                    mjml_render.html,
+                    base_url=self.get_base_url(),
+                ).transform()
 
     def get_template_context(self) -> Mapping:
         """
