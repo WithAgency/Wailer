@@ -35,6 +35,6 @@ An Mandrill backend is also available.
 Uses the Mailjet SMS service. Once it's configured and paid for, you can set the
 following settings:
 
--   `SMS_BACKEND` &mdash; Must be set to ` "wailer.backends.MailjetSmsBackend"`
+-   `SMS_BACKEND` &mdash; Must be set to `"wailer.backends.MailjetSmsBackend"`
 -   `MAILJET_API_TOKEN` &mdash; Is the API Token that you get from the Mailjet
     console
