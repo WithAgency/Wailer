@@ -11,10 +11,7 @@ license = "WTFPL"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Framework :: Django",
-    "Framework :: Django :: 3.2",
-    "Framework :: Django :: 4",
-    "Framework :: Django :: 4.0",
-    "Framework :: Django :: 4.1",
+    "Framework :: Django :: 6.0",
     "Intended Audience :: Developers",
     "Topic :: Communications :: Email",
     "Topic :: Software Development :: Libraries",
@@ -29,16 +26,17 @@ homepage = "https://github.com/withagency/wailer"
 keywords = ["django", "email", "sms"]
 
 [tool.poetry.dependencies]
-python = "^3.10"
-Django = "*"
-premailer = ">=3"
+python = "~3.13"
+Django = ">=5.2"
+css-inline = ">=0.14"
+lxml = ">=4"
 django-sms = ">=0.5"
 django-phonenumber-field = {extras = ["phonenumbers"], version = ">=6"}
 httpx = "*"
 typing-extensions = ">=4"
 node-edge = "^0.1.0b5"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 isort = "^5.10.1"
 black = "^22.6.0"
 

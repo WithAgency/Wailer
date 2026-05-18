@@ -4,12 +4,15 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.template.loader import render_to_string
-from node_edge import NodeEngine
 from phonenumbers import PhoneNumber
-from premailer import transform
+import css_inline
 
 from .errors import WailerTemplateException
-from .utils import MjmlPremailer, is_loopback
+from .utils import (
+    is_loopback,
+    render_mjml_to_html,
+    rewrite_urls,
+)
 
 if TYPE_CHECKING:
     from .models import BaseMessage
@@ -259,27 +262,22 @@ class EmailType(BaseMessageType, ABC):
         """
 
         path = self.get_template_html_path()
-        html = render_to_string(
-            self.get_template_html_path(), self.get_template_context()
-        )
 
         if path.lower().endswith(".html"):
-            return transform(html, base_url=self.get_base_url())
-        elif path.lower().endswith(".mjml"):
-            with NodeEngine({"dependencies": {"mjml": "~4.13.0"}}) as engine:
-                mjml = engine.import_from("mjml")
-                mjml_render = mjml(
-                    html,
-                    {
-                        "minify": True,
-                        "validationLevel": "strict",
-                    },
-                )
+            html = render_to_string(path, self.get_template_context())
+            base_url = self.get_base_url()
+            inliner = css_inline.CSSInliner(base_url=base_url)
+            html = inliner.inline(html)
+            result = rewrite_urls(html, base_url)
+            return result
 
-                return MjmlPremailer(
-                    mjml_render.html,
-                    base_url=self.get_base_url(),
-                ).transform()
+        elif path.lower().endswith(".mjml"):
+            result = render_mjml_to_html(
+                template_path=path,
+                context_dict=self.get_template_context(),
+                base_url=self.get_base_url()
+            )
+            return result
 
     def get_template_context(self) -> Mapping:
         """
