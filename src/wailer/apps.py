@@ -47,11 +47,12 @@ def monkey_patch_sms_into_unit_tests():
 
     original_local = SimpleTestCase._pre_setup  # noqa
 
-    @wraps(original_local)
-    def patched_local(*args, **kwargs):
+    @classmethod
+    @wraps(original_local.__func__)
+    def patched_local(cls):
         import sms
 
-        original_local(*args, **kwargs)
+        original_local.__func__(cls)
         sms.outbox = []
 
     SimpleTestCase._pre_setup = patched_local
