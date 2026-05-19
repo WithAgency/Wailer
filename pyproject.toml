@@ -27,8 +27,8 @@ keywords = ["django", "email", "sms"]
 
 [tool.poetry.dependencies]
 python = "~3.13"
-Django = ">=5.2"
-css-inline = ">=0.14"
+Django = "~6.0.5"
+css-inline = ">=0.20.2"
 lxml = ">=4"
 django-sms = ">=0.5"
 django-phonenumber-field = {extras = ["phonenumbers"], version = ">=6"}
