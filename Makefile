@@ -1,9 +1,15 @@
-PYTHON_BIN ?= poetry run python
+.PHONY: format lint typecheck test
 
-format: isort black
+format:
+	uv run ruff check --fix --select I .
+	uv run ruff format .
 
-black:
-	$(PYTHON_BIN) -m black --exclude '/(\.git|\.hg|\.mypy_cache|\.nox|\.tox|\.venv|_build|buck-out|build|dist|node_modules|webpack_bundles)/' .
+lint: typecheck
+	uv run ruff check .
+	uv run ruff format --check .
 
-isort:
-	$(PYTHON_BIN) -m isort src demo doc
+typecheck:
+	uv run mypy
+
+test:
+	uv run pytest demo

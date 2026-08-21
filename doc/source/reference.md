@@ -25,9 +25,7 @@ h1 {
 **my_app/templates/template.html**
 
 ```html
-{% load wailer %}
-
-{% email_style "style.css" %}
+{% load wailer %} {% email_style "style.css" %}
 
 <h1>Title</h1>
 ```
@@ -43,9 +41,7 @@ URL with the website's domain. You can check how the domain is determined in the
 [tutorial](absolute_url).
 
 ```html
-{% load wailer %}
-
-{% make_absolute "/foo/bar" %}
+{% load wailer %} {% make_absolute "/foo/bar" %}
 <!-- Will output "https://my-app.com/foo/bar -->
 ```
 
@@ -58,9 +54,7 @@ will be absolute. The domain name of those URLs will be determined in the way
 that is explained in the [tutorial](absolute_url).
 
 ```html
-{% load wailer %}
-
-{% url "product_page" product.id %}
+{% load wailer %} {% url "product_page" product.id %}
 <!-- Instead of /product/42/ will output https://my-app.com/product/42/ -->
 ```
 

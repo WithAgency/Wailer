@@ -1,3 +1,4 @@
+import pytest
 import sms
 from django.conf import settings
 from django.contrib.sites.models import Site
@@ -10,9 +11,9 @@ from django.test import (
     override_settings,
 )
 from django.utils.encoding import force_bytes
-from my_app.models import User
 from sms.message import Message as SmsMessage
 
+from my_app.models import User
 from wailer.backends.mailjet import parse_email_address
 from wailer.errors import WailerTemplateException
 from wailer.models import Email, Sms
@@ -23,30 +24,30 @@ class TestStaticEmail(TransactionTestCase):
         self.email = Email.send("static", {})
 
     def get_sent_mail(self) -> EmailMultiAlternatives:
-        self.assertEqual(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         return mail.outbox[0]
 
     def test_get_to(self):
         sent = self.get_sent_mail()
-        self.assertEqual(sent.to, ["foo@bar.com"])
+        assert sent.to == ["foo@bar.com"]
 
     def test_get_subject(self):
         sent = self.get_sent_mail()
-        self.assertEqual(sent.subject, "Static Subject")
+        assert sent.subject == "Static Subject"
 
     def test_rendered_text(self):
         sent = self.get_sent_mail()
-        self.assertEqual(sent.body, "Static Text en français\n")
+        assert sent.body == "Static Text en français\n"
 
     def test_rendered_html(self):
         sent = self.get_sent_mail()
-        self.assertEqual(len(sent.alternatives), 1)
+        assert len(sent.alternatives) == 1
         content, mime = sent.alternatives[0]
-        self.assertEqual(mime, "text/html")
+        assert mime == "text/html"
         self.assertInHTML("Static HTML en français", content, count=1)
 
     def test_context(self):
-        self.assertEqual(self.email.context["prefix"], "Static")
+        assert self.email.context["prefix"] == "Static"
 
 
 class TestStaticNoTextEmail(TransactionTestCase):
@@ -54,14 +55,14 @@ class TestStaticNoTextEmail(TransactionTestCase):
         self.email = Email.send("static-no-text", {})
 
     def get_sent_mail(self) -> EmailMultiAlternatives:
-        self.assertEqual(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         return mail.outbox[0]
 
     def test_has_no_text(self):
         sent = self.get_sent_mail()
-        self.assertEqual(len(sent.alternatives), 1)
-        self.assertEqual(sent.alternatives[0][1], "text/html")
-        self.assertEqual(sent.body, "")
+        assert len(sent.alternatives) == 1
+        assert sent.alternatives[0][1] == "text/html"
+        assert sent.body == ""
 
 
 class TestStaticNoHtmlEmail(TransactionTestCase):
@@ -69,13 +70,13 @@ class TestStaticNoHtmlEmail(TransactionTestCase):
         self.email = Email.send("static-no-html", {})
 
     def get_sent_mail(self) -> EmailMultiAlternatives:
-        self.assertEqual(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         return mail.outbox[0]
 
     def test_has_no_html(self):
         sent = self.get_sent_mail()
-        self.assertEqual(len(sent.alternatives), 0)
-        self.assertNotEqual(sent.body, "")
+        assert len(sent.alternatives) == 0
+        assert sent.body != ""
 
 
 class TestHello(TransactionTestCase):
@@ -91,26 +92,26 @@ class TestHello(TransactionTestCase):
         )
 
     def get_sent_mail(self) -> EmailMultiAlternatives:
-        self.assertEqual(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         return mail.outbox[0]
 
     def test_get_subject(self):
         sent = self.get_sent_mail()
-        self.assertEqual(sent.subject, "Salut John Doe")
+        assert sent.subject == "Salut John Doe"
 
     def test_get_to(self):
         sent = self.get_sent_mail()
-        self.assertEqual(sent.to, ["john.doe@example.org"])
+        assert sent.to == ["john.doe@example.org"]
 
     def test_rendered_text(self):
         sent = self.get_sent_mail()
-        self.assertEqual(sent.body, "Salut John Doe!\n\nÀ plus la pluche\n")
+        assert sent.body == "Salut John Doe!\n\nÀ plus la pluche\n"
 
     def test_rendered_html(self):
         sent = self.get_sent_mail()
-        self.assertEqual(len(sent.alternatives), 1)
+        assert len(sent.alternatives) == 1
         content, mime = sent.alternatives[0]
-        self.assertEqual(mime, "text/html")
+        assert mime == "text/html"
         self.assertInHTML("Bonjour, John Doe!", content, count=1)
 
 
@@ -127,14 +128,14 @@ class TestHelloMjml(TransactionTestCase):
         )
 
     def get_sent_mail(self) -> EmailMultiAlternatives:
-        self.assertEqual(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         return mail.outbox[0]
 
     def test_rendered_html(self):
         sent = self.get_sent_mail()
-        self.assertEqual(len(sent.alternatives), 1)
+        assert len(sent.alternatives) == 1
         content, mime = sent.alternatives[0]
-        self.assertEqual(mime, "text/html")
+        assert mime == "text/html"
         self.assertInHTML("Bonjour, John Doe!", content, count=1)
 
 
@@ -151,16 +152,16 @@ class TestHelloAttachment(TransactionTestCase):
         )
 
     def get_sent_mail(self) -> EmailMultiAlternatives:
-        self.assertEqual(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         return mail.outbox[0]
 
-    def test_rendered_html(self):
+    def test_attachment(self):
         sent = self.get_sent_mail()
-        self.assertEqual(len(sent.attachments), 1)
+        assert len(sent.attachments) == 1
         filename, content, mimetype = sent.attachments[0]
-        self.assertEqual(filename, "hello.txt")
-        self.assertEqual(force_bytes(content), b"\x00\x01\x02")
-        self.assertEqual(mimetype, "application/octet-stream")
+        assert filename == "hello.txt"
+        assert force_bytes(content) == b"\x00\x01\x02"
+        assert mimetype == "application/octet-stream"
 
 
 class TestHelloUser(TransactionTestCase):
@@ -175,20 +176,20 @@ class TestHelloUser(TransactionTestCase):
         self.email = Email.send("hello-user", dict(user_id=self.user.id), self.user)
 
     def get_sent_mail(self) -> EmailMultiAlternatives:
-        self.assertEqual(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         return mail.outbox[0]
 
     def test_get_subject(self):
         sent = self.get_sent_mail()
-        self.assertEqual(sent.subject, "Salut John Doe")
+        assert sent.subject == "Salut John Doe"
 
     def test_get_to(self):
         sent = self.get_sent_mail()
-        self.assertEqual(sent.to, ["john.doe@example.org"])
+        assert sent.to == ["john.doe@example.org"]
 
     def test_rendered_text(self):
         sent = self.get_sent_mail()
-        self.assertEqual(sent.body, "Salut John Doe!\n\nÀ plus la pluche\n")
+        assert sent.body == "Salut John Doe!\n\nÀ plus la pluche\n"
 
     def test_after_user_change(self):
         self.user.first_name = "Jack"
@@ -197,18 +198,18 @@ class TestHelloUser(TransactionTestCase):
         self.email.send_now()
         sent = mail.outbox[-1]
 
-        self.assertEqual(sent.subject, "Salut John Doe")
+        assert sent.subject == "Salut John Doe"
 
     def test_delete_after_user(self):
-        self.assertTrue(Email.objects.filter(pk=self.email.pk).exists())
+        assert Email.objects.filter(pk=self.email.pk).exists()
         self.user.delete()
-        self.assertFalse(Email.objects.filter(pk=self.email.pk).exists())
+        assert not Email.objects.filter(pk=self.email.pk).exists()
 
     def test_rendered_html(self):
         sent = self.get_sent_mail()
-        self.assertEqual(len(sent.alternatives), 1)
+        assert len(sent.alternatives) == 1
         content, mime = sent.alternatives[0]
-        self.assertEqual(mime, "text/html")
+        assert mime == "text/html"
         self.assertInHTML("Bonjour, John Doe!", content, count=1)
 
 
@@ -217,7 +218,7 @@ class TestStyledEmail(TransactionTestCase):
         self.email = Email.send("styled-html", {})
 
     def get_sent_mail(self) -> EmailMultiAlternatives:
-        self.assertEqual(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         return mail.outbox[0]
 
     def test_h1_has_style(self):
@@ -232,7 +233,18 @@ class TestGetBaseUrl(TransactionTestCase):
 
     @override_settings(WAILER_BASE_URL="https://example.org")
     def test_wailer_base_url(self):
-        self.assertEqual(self.email.email.get_base_url(), "https://example.org")
+        assert self.email.email.get_base_url() == "https://example.org"
+
+    @override_settings(BASE_URL="https://base.example.org")
+    def test_base_url(self):
+        assert self.email.email.get_base_url() == "https://base.example.org"
+
+    @override_settings(
+        WAILER_BASE_URL="https://wailer.example.org",
+        BASE_URL="https://base.example.org",
+    )
+    def test_wailer_base_url_wins_over_base_url(self):
+        assert self.email.email.get_base_url() == "https://wailer.example.org"
 
     @override_settings(WAILER_SITE_ID=1)
     def test_wailer_site_id(self):
@@ -240,32 +252,32 @@ class TestGetBaseUrl(TransactionTestCase):
         site.domain = "example.org"
         site.save()
 
-        self.assertEqual(self.email.email.get_base_url(), "https://example.org")
+        assert self.email.email.get_base_url() == "https://example.org"
 
     def test_default_site_example(self):
         site = Site.objects.get(pk=1)
         site.domain = "example.org"
         site.save()
 
-        self.assertEqual(self.email.email.get_base_url(), "https://example.org")
+        assert self.email.email.get_base_url() == "https://example.org"
 
     def test_default_site_localhost(self):
         site = Site.objects.get(pk=1)
         site.domain = "localhost:8000"
         site.save()
 
-        self.assertEqual(self.email.email.get_base_url(), "http://localhost:8000")
+        assert self.email.email.get_base_url() == "http://localhost:8000"
 
     def test_default_site_local_ip(self):
         site = Site.objects.get(pk=1)
         site.domain = "127.0.0.1:8000"
         site.save()
 
-        self.assertEqual(self.email.email.get_base_url(), "http://127.0.0.1:8000")
+        assert self.email.email.get_base_url() == "http://127.0.0.1:8000"
 
     @modify_settings(INSTALLED_APPS=dict(remove=["django.contrib.sites"]))
     def test_no_guess(self):
-        with self.assertRaises(WailerTemplateException):
+        with pytest.raises(WailerTemplateException):
             self.email.email.get_base_url()
 
 
@@ -286,17 +298,15 @@ class TestEmailPermalink(TransactionTestCase):
 
     def test_get_txt(self):
         response = self.client.get(self.email.link_text)
-        self.assertEqual(response.context["self"], self.email)
-        self.assertEqual(response.resolver_match.kwargs["email_uuid"], self.email.pk)
-        self.assertEqual(
-            response.content.decode(response.charset),
-            "Salut John Doe!\n\nÀ plus la pluche\n",
-        )
+        assert response.context["self"] == self.email
+        assert response.resolver_match.kwargs["email_uuid"] == self.email.pk
+        expected = "Salut John Doe!\n\nÀ plus la pluche\n"
+        assert response.content.decode(response.charset) == expected
 
     def test_get_html(self):
         response = self.client.get(self.email.link_html)
-        self.assertEqual(response.context["self"], self.email)
-        self.assertEqual(response.resolver_match.kwargs["email_uuid"], self.email.pk)
+        assert response.context["self"] == self.email
+        assert response.resolver_match.kwargs["email_uuid"] == self.email.pk
         self.assertInHTML(
             "Bonjour, John Doe!",
             response.content.decode(response.charset),
@@ -305,10 +315,10 @@ class TestEmailPermalink(TransactionTestCase):
 
     def test_get_invalid_format(self):
         response = self.client.get(self.email.link_text.replace(".txt", ".nope"))
-        self.assertEqual(response.status_code, 404)
+        assert response.status_code == 404
 
     def get_sent_mail(self) -> EmailMultiAlternatives:
-        self.assertEqual(len(mail.outbox), 1)
+        assert len(mail.outbox) == 1
         return mail.outbox[0]
 
     def test_permalink_in_mail(self):
@@ -332,27 +342,22 @@ class TestAbsoluteUrl(TransactionTestCase):
 
     def test_straight(self):
         email = Email.send("absolute-url-straight", {})
-        self.assertEqual(email.email.get_text_content(), "https://wailer.org/\n")
+        assert email.email.get_text_content() == "https://wailer.org/\n"
 
     def test_as(self):
         email = Email.send("absolute-url-as", {})
-        self.assertEqual(
-            email.email.get_text_content(),
-            "1 = , 2 = https://wailer.org/\n",
-        )
+        assert email.email.get_text_content() == "1 = , 2 = https://wailer.org/\n"
 
     def test_make_absolute(self):
         email = Email.send("make-absolute", {})
-        self.assertEqual(email.email.get_text_content(), "https://wailer.org/foo/bar\n")
+        assert email.email.get_text_content() == "https://wailer.org/foo/bar\n"
 
 
 class TestMailjetEmailBackend(SimpleTestCase):
     def test_parse_email_address(self):
-        self.assertEqual(parse_email_address("foo@bar.com"), dict(Email="foo@bar.com"))
-        self.assertEqual(
-            parse_email_address("Foo <foo@bar.com>"),
-            dict(Email="foo@bar.com", Name="Foo"),
-        )
+        assert parse_email_address("foo@bar.com") == dict(Email="foo@bar.com")
+        expected = dict(Email="foo@bar.com", Name="Foo")
+        assert parse_email_address("Foo <foo@bar.com>") == expected
 
         with self.assertRaisesMessage(ValueError, "Invalid e-mail format: <<<"):
             parse_email_address("<<<")
@@ -363,22 +368,22 @@ class TestSendSms(TransactionTestCase):
         self.sms = Sms.send("hello", {"word": "Foo"})
 
     def test_locmem_backend(self):
-        self.assertEqual(settings.SMS_BACKEND, "sms.backends.locmem.SmsBackend")
+        assert settings.SMS_BACKEND == "sms.backends.locmem.SmsBackend"
 
     def get_sent_sms(self) -> SmsMessage:
         self.assertEqual(len(sms.outbox), 1)  # noqa
-        return sms.outbox[0]  # noqa
+        return sms.outbox[0]
 
     def test_get_to(self):
         sent = self.get_sent_sms()
-        self.assertEqual(sent.recipients, ["+34659424242"])
+        assert sent.recipients == ["+34659424242"]
 
     def test_rendered_text(self):
         sent = self.get_sent_sms()
-        self.assertEqual(sent.body, "Bonjour Foo\xa0!")
+        assert sent.body == "Bonjour Foo\xa0!"
 
     def test_context(self):
-        self.assertEqual(self.sms.context["word"], "Foo")
+        assert self.sms.context["word"] == "Foo"
 
 
 class TestHelloUserSms(TransactionTestCase):
@@ -395,29 +400,29 @@ class TestHelloUserSms(TransactionTestCase):
 
     def get_sent_sms(self) -> SmsMessage:
         self.assertEqual(len(sms.outbox), 1)  # noqa
-        return sms.outbox[0]  # noqa
+        return sms.outbox[0]
 
     def test_body(self):
         sent = self.get_sent_sms()
-        self.assertEqual(sent.body, "Salut John Doe")
+        assert sent.body == "Salut John Doe"
 
     def test_get_to(self):
         sent = self.get_sent_sms()
-        self.assertEqual(sent.recipients, ["+34659424242"])
+        assert sent.recipients == ["+34659424242"]
 
     def test_after_user_change(self):
         self.user.first_name = "Jack"
         self.user.save()
 
         self.sms.send_now()
-        sent = sms.outbox[-1]  # noqa
+        sent = sms.outbox[-1]
 
-        self.assertEqual(sent.body, "Salut John Doe")
+        assert sent.body == "Salut John Doe"
 
     def test_delete_after_user(self):
-        self.assertTrue(Sms.objects.filter(pk=self.sms.pk).exists())
+        assert Sms.objects.filter(pk=self.sms.pk).exists()
         self.user.delete()
-        self.assertFalse(Sms.objects.filter(pk=self.sms.pk).exists())
+        assert not Sms.objects.filter(pk=self.sms.pk).exists()
 
 
 class TestComeHomeUserSms(TransactionTestCase):
@@ -434,11 +439,10 @@ class TestComeHomeUserSms(TransactionTestCase):
 
     def get_sent_sms(self) -> SmsMessage:
         self.assertEqual(len(sms.outbox), 1)  # noqa
-        return sms.outbox[0]  # noqa
+        return sms.outbox[0]
 
     def test_body(self):
         sent = self.get_sent_sms()
-        self.assertEqual(
-            sent.body,
-            "Salut John Doe, viens à la maison ici : https://example.com/",
+        assert (
+            sent.body == "Salut John Doe, viens à la maison ici : https://example.com/"
         )

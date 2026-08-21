@@ -1,10 +1,10 @@
-from typing import Mapping
+from collections.abc import Mapping
 
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from my_app.models import User
 from phonenumbers import PhoneNumber, parse
 
+from my_app.models import User
 from wailer.interfaces import JsonType, SmsType
 
 

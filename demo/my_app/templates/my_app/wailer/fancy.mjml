@@ -1,0 +1,25 @@
+{% load i18n %}
+<mjml>
+    <mj-head>
+        <mj-attributes>
+            <mj-text padding="0" />
+            <mj-all font-family="Helvetica, Arial" />
+        </mj-attributes>
+        <mj-style>
+            .fancy-link a { color: #ff0042; }
+        </mj-style>
+    </mj-head>
+    <mj-body>
+        <mj-section>
+            <mj-column>
+                <mj-image src="/static/my_app/logo.png" alt="logo" />
+                <mj-text css-class="fancy-link">
+                    {% blocktrans %}Hello, {{ name }}!{% endblocktrans %}
+                    <a href="/promo">Promo</a>
+                    <a href="#anchor">Anchor</a>
+                    <a href="tel:+34600000000">Call us</a>
+                </mj-text>
+            </mj-column>
+        </mj-section>
+    </mj-body>
+</mjml>

@@ -1,9 +1,9 @@
-from typing import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
-from my_app.models import User
 
+from my_app.models import User
 from wailer.interfaces import EmailAttachment, EmailType, JsonType
 
 
@@ -58,7 +58,7 @@ class Hello(EmailType):
         )
 
     def get_subject(self) -> str:
-        return _(f"Hello %(name)s") % dict(name=self.context["name"])
+        return _("Hello %(name)s") % dict(name=self.context["name"])
 
     def get_template_html_path(self) -> str:
         return "my_app/wailer/hello.html"
@@ -85,6 +85,16 @@ class HelloAttachment(Hello):
         return [
             EmailAttachment("hello.txt", b"\x00\x01\x02", "application/octet-stream")
         ]
+
+
+class FancyMjml(Hello):
+    """
+    MJML with the harder features: custom CSS classes, relative link and
+    image URLs to be made absolute, anchors and tel: links to be preserved.
+    """
+
+    def get_template_html_path(self) -> str:
+        return "my_app/wailer/fancy.mjml"
 
 
 class HelloUser(Hello):

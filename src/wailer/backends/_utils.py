@@ -1,10 +1,10 @@
-from typing import Mapping, Union
+from collections.abc import Mapping
 
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 
 
 def by_alternatives(
-    message: Union[EmailMultiAlternatives, EmailMessage],
+    message: EmailMultiAlternatives | EmailMessage,
 ) -> Mapping[str, str]:
     """
     Flattens all alternatives of this email in order to receive them indexed

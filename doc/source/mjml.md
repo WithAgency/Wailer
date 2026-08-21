@@ -48,6 +48,6 @@ MJML is a node library. In order to use it, it is installed on-the-fly when you
 invoke a MJML rendering. This is less-than-perfect, but it works. However it
 means that:
 
--   If you run the code on a server that can't access NPM, it won't work
--   The rendering of emails is a bit slow. It's recommended that you do it from
-    a background task (like a Celery task) so that it doesn't block the user
+- If you run the code on a server that can't access NPM, it won't work
+- The rendering of emails is a bit slow. It's recommended that you do it from a
+  background task (like a Celery task) so that it doesn't block the user

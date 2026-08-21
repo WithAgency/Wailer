@@ -1,4 +1,6 @@
-from typing import Any, Optional, Type
+"""Models storing sent emails and SMSes."""
+
+from typing import Any
 from uuid import uuid4
 
 from django.conf import settings
@@ -11,6 +13,7 @@ from django.utils.translation import override as override_locale
 from phonenumber_field.modelfields import PhoneNumberField
 from sms import send_sms
 
+from .errors import WailerException
 from .interfaces import EmailType, JsonType, SmsType
 from .utils import import_class
 
@@ -50,7 +53,7 @@ class Email(BaseMessage):
         cls,
         type_: str,
         data: JsonType,
-        user: Optional[models.Model] = None,
+        user: models.Model | None = None,
     ) -> "Email":
         """
         Call this to immediately send the email with the appropriate data.
@@ -74,9 +77,13 @@ class Email(BaseMessage):
             GDPR rights.
         """
 
-        assert type_ in settings.WAILER_EMAIL_TYPES
+        if type_ not in settings.WAILER_EMAIL_TYPES:
+            msg = f"Email type {type_!r} is not declared in WAILER_EMAIL_TYPES"
+            raise WailerException(msg)
 
-        obj = Email(
+        # AUTH_USER_MODEL is dynamic; a reusable lib cannot reference the
+        # concrete user model that django-stubs resolves here.
+        obj = Email(  # type: ignore[misc]
             data=data,
             type=type_,
             for_user=user,
@@ -98,12 +105,17 @@ class Email(BaseMessage):
         Generates the email "type" object from this model
         """
 
-        assert self.type in settings.WAILER_EMAIL_TYPES
+        if self.type not in settings.WAILER_EMAIL_TYPES:
+            msg = f"Email type {self.type!r} is not declared in WAILER_EMAIL_TYPES"
+            raise WailerException(msg)
 
-        type_class: Type[EmailType] = import_class(
+        type_class: type[EmailType] = import_class(
             settings.WAILER_EMAIL_TYPES[self.type]
         )
-        assert type_class
+
+        if not type_class:
+            msg = f"Could not import class for email type {self.type!r}"
+            raise WailerException(msg)
 
         return type_class(self)
 
@@ -177,6 +189,8 @@ class Email(BaseMessage):
 
 
 class Sms(BaseMessage):
+    """An SMS that was sent or is about to be sent."""
+
     sender = models.CharField(
         default="",
         blank=True,
@@ -189,7 +203,7 @@ class Sms(BaseMessage):
         cls,
         type_: str,
         data: Any,
-        user: Optional[models.Model] = None,
+        user: models.Model | None = None,
     ):
         """
         Call this to immediately send the SMS with the appropriate data.
@@ -213,9 +227,13 @@ class Sms(BaseMessage):
             GDPR rights.
         """
 
-        assert type_ in settings.WAILER_SMS_TYPES
+        if type_ not in settings.WAILER_SMS_TYPES:
+            msg = f"SMS type {type_!r} is not declared in WAILER_SMS_TYPES"
+            raise WailerException(msg)
 
-        obj = Sms(
+        # AUTH_USER_MODEL is dynamic; a reusable lib cannot reference the
+        # concrete user model that django-stubs resolves here.
+        obj = Sms(  # type: ignore[misc]
             data=data,
             type=type_,
             for_user=user,
@@ -237,10 +255,15 @@ class Sms(BaseMessage):
         Generates the SMS "type" object from this model
         """
 
-        assert self.type in settings.WAILER_SMS_TYPES
+        if self.type not in settings.WAILER_SMS_TYPES:
+            msg = f"SMS type {self.type!r} is not declared in WAILER_SMS_TYPES"
+            raise WailerException(msg)
 
-        type_class: Type[SmsType] = import_class(settings.WAILER_SMS_TYPES[self.type])
-        assert type_class
+        type_class: type[SmsType] = import_class(settings.WAILER_SMS_TYPES[self.type])
+
+        if not type_class:
+            msg = f"Could not import class for SMS type {self.type!r}"
+            raise WailerException(msg)
 
         return type_class(self)
 

@@ -1,3 +1,5 @@
+"""Django app configuration for Wailer."""
+
 from functools import wraps
 
 from django.apps import AppConfig
@@ -29,7 +31,7 @@ def monkey_patch_sms_into_unit_tests():
     if getattr(original_global, "_wailer_sms", False):
         return
     else:
-        setattr(original_global, "_wailer_sms", True)
+        original_global._wailer_sms = True
 
     @wraps(original_global)
     def patched_pre(*args, **kwargs):
@@ -41,11 +43,16 @@ def monkey_patch_sms_into_unit_tests():
         settings.SMS_BACKEND = "sms.backends.locmem.SmsBackend"
 
         if not hasattr(sms, "outbox"):
-            setattr(sms, "outbox", [])
+            sms.outbox = []
 
     utils.setup_test_environment = patched_pre
 
-    original_local = SimpleTestCase._pre_setup  # noqa
+    # In Django < 6.1 _pre_setup is an instance method while starting from
+    # 6.1 it is a classmethod, so we need to look at the raw attribute to
+    # know how to re-wrap it after patching.
+    raw_local = SimpleTestCase.__dict__["_pre_setup"]
+    is_classmethod = isinstance(raw_local, classmethod)
+    original_local = raw_local.__func__ if is_classmethod else raw_local
 
     @wraps(original_local)
     def patched_local(*args, **kwargs):
@@ -54,7 +61,9 @@ def monkey_patch_sms_into_unit_tests():
         original_local(*args, **kwargs)
         sms.outbox = []
 
-    SimpleTestCase._pre_setup = patched_local
+    SimpleTestCase._pre_setup = (
+        classmethod(patched_local) if is_classmethod else patched_local
+    )
 
 
 class WailerConfig(AppConfig):

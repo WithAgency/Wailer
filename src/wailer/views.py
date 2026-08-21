@@ -1,4 +1,5 @@
-from typing import Text
+"""Views to display sent emails and SMSes in a browser."""
+
 from uuid import UUID
 
 from django.http import HttpRequest, HttpResponse
@@ -8,7 +9,7 @@ from django.utils.translation import override as override_locale
 from .models import Email, Sms
 
 
-def email(request: HttpRequest, email_uuid: UUID, fmt: Text) -> HttpResponse:
+def email(request: HttpRequest, email_uuid: UUID, fmt: str) -> HttpResponse:
     """
     Renders an email in the requested format
 

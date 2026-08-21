@@ -1,50 +1,148 @@
-[tool.poetry]
+[project]
 name = "django-wailer"
-version = "1.0.0b4"
-packages = [
-    {  include = "wailer", from = "src" }
-]
-
+version = "1.0.0"
 description = "A Django emailing/texting utility"
-authors = ["Rémy Sanchez <remy.sanchez@hyperthese.net>"]
-license = "WTFPL"
+license = { text = "WTFPL" }
+authors = [
+    { name = "Rémy Sanchez", email = "remy.sanchez@hyperthese.net" },
+]
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["django", "email", "sms"]
 classifiers = [
-    "Development Status :: 4 - Beta",
+    "Development Status :: 5 - Production/Stable",
     "Framework :: Django",
-    "Framework :: Django :: 3.2",
-    "Framework :: Django :: 4",
-    "Framework :: Django :: 4.0",
-    "Framework :: Django :: 4.1",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
+    "Framework :: Django :: 6.0",
+    "Framework :: Django :: 6.1",
     "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Communications :: Email",
     "Topic :: Software Development :: Libraries",
     "Typing :: Typed",
 ]
+dependencies = [
+    "Django>=4.2",
+    "premailer>=3",
+    "django-sms>=0.5",
+    "django-phonenumber-field[phonenumbers]>=6",
+    "httpx>=0.23",
+    "typing-extensions>=4",
+    "node-edge>=1.0.0,<2",
+]
 
-readme = "README.md"
+[project.optional-dependencies]
+# Bundles the Node.js runtime so that MJML rendering works without a
+# system-wide Node installation.
+node = ["node-edge[node]>=1.0.0,<2"]
 
-repository = "https://github.com/withagency/wailer"
-homepage = "https://github.com/withagency/wailer"
+[project.urls]
+Homepage = "https://github.com/WithAgency/Wailer"
+Repository = "https://github.com/WithAgency/Wailer"
 
-keywords = ["django", "email", "sms"]
+[dependency-groups]
+dev = [
+    "ruff>=0.14",
+    "mypy>=1.19",
+    "django-stubs>=5",
+    "modelw-env-manager>=1",
+]
+test = [
+    "pytest>=8",
+    "pytest-django>=4.9",
+    "pytest-httpx>=0.30",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-Django = "*"
-premailer = ">=3"
-django-sms = ">=0.5"
-django-phonenumber-field = {extras = ["phonenumbers"], version = ">=6"}
-httpx = "*"
-typing-extensions = ">=4"
-node-edge = "^0.1.0b5"
-
-[tool.poetry.dev-dependencies]
-isort = "^5.10.1"
-black = "^22.6.0"
+[tool.uv]
+default-groups = ["dev", "test"]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.isort]
-profile = "black"
+[tool.hatch.build.targets.wheel]
+packages = ["src/wailer"]
+
+[tool.ruff]
+target-version = "py310"
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = [
+    # -- Core --
+    "E",  # pycodestyle (errors)
+    "W",  # pycodestyle (warnings)
+    "F",  # Pyflakes
+    "I",  # isort
+    "C90",  # McCabe Complexity
+    "D1",  # Mandatory docstrings
+    "S",  # Bandit
+
+    # -- Bonus --
+    "A",  # flake8-builtins
+    "B",  # flake8-bugbear
+    "DTZ",  # date/time zone
+    "T10",  # debugger
+    "EM",  # error messages
+    "EXE",  # executable
+    "G",  # logging
+    "UP",  # pyupgrade
+    "ASYNC",  # async
+    "INP",  # PEP 420
+    "T20",  # no print
+    "PT",  # pytest
+    "SLOT",  # slots
+    "TC",  # type checking blocks
+    "PTH",  # Use pathlib
+    "FIX",  # Don't allow not done stuff in code
+    "ERA",  # Don't comment code
+    "RUF",  # Ruff stuff
+]
+ignore = [
+    "RUF012",  # class-attribute lists are canonical Django style
+    "D104",  # package __init__.py files don't need docstrings
+    "D105",  # magic methods are self-describing
+    "D106",  # nested Meta/TextChoices classes are pure configuration
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests: asserts are the point, fixtures shadow args.
+"demo/*" = ["S101", "D1", "ARG001", "S105", "S106", "S308", "INP001"]
+"doc/source/conf.py" = ["A001", "INP001", "D100"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["wailer", "my_app", "wailer_demo"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.mypy]
+files = ["src"]
+mypy_path = ["demo"]
+plugins = ["mypy_django_plugin.main"]
+
+[[tool.mypy.overrides]]
+module = ["premailer.*", "sms.*", "phonenumber_field.*", "phonenumbers.*"]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["*.migrations.*"]
+ignore_errors = true
+
+[tool.django-stubs]
+django_settings_module = "wailer_demo.settings"
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "wailer_demo.settings"
+pythonpath = ["demo"]
+python_files = ["test_*.py", "tests.py"]
+testpaths = ["demo"]
+addopts = ["-q", "-ra", "--tb=short"]

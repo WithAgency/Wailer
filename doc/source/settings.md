@@ -36,7 +36,9 @@ WAILER_SMS_TYPES = {
 When generating absolute links from inside the email, several settings can be
 used:
 
--   `WAILER_BASE_URL` &mdash; To manually set the base URL of your site
--   `WAILER_SITE_ID` &mdash; To select a site from the sites framework
--   `SITE_ID` &mdash; Not wailer-specific, that's a setting from the sites
-    framework that will determine which is the default site to use
+- `WAILER_BASE_URL` &mdash; To manually set the base URL of your site
+- `BASE_URL` &mdash; Same, but a more generic convention (used by Model W among
+  others); `WAILER_BASE_URL` wins if both are set
+- `WAILER_SITE_ID` &mdash; To select a site from the sites framework
+- `SITE_ID` &mdash; Not wailer-specific, that's a setting from the sites
+  framework that will determine which is the default site to use

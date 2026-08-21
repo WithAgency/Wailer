@@ -1,5 +1,8 @@
+"""Interfaces that email and SMS message types must implement."""
+
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Iterable, Mapping, NamedTuple, Sequence, Union
+from collections.abc import Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, NamedTuple
 from urllib.parse import urljoin
 
 from django.conf import settings
@@ -15,15 +18,9 @@ if TYPE_CHECKING:
     from .models import BaseMessage
 
 
-JsonType = Union[
-    str,
-    int,
-    float,
-    bool,
-    None,
-    Mapping[str, "JsonType"],
-    Sequence["JsonType"],
-]
+JsonType = (
+    str | int | float | bool | None | Mapping[str, "JsonType"] | Sequence["JsonType"]
+)
 
 
 class BaseMessageType(ABC):
@@ -32,7 +29,7 @@ class BaseMessageType(ABC):
     """
 
     def __init__(self, message: "BaseMessage"):
-        self.message: "BaseMessage" = message
+        self.message: BaseMessage = message
 
     @property
     def data(self) -> JsonType:
@@ -91,6 +88,9 @@ class BaseMessageType(ABC):
         #. If there is a `WAILER_BASE_URL` declared in the settings then we're
            just going to use that
 
+        #. Otherwise, if there is a `BASE_URL` in the settings (a fairly
+           common convention, used among others by Model W) then it is used
+
         #. Otherwise we turn to the sites framework (if installed)
 
            * The `WAILER_SITE_ID` can force the ID of the site we're using
@@ -112,7 +112,11 @@ class BaseMessageType(ABC):
         """
 
         if hasattr(settings, "WAILER_BASE_URL"):
-            return settings.WAILER_BASE_URL
+            # WAILER_BASE_URL is a user-provided setting unknown to
+            # django-stubs' Settings type
+            return settings.WAILER_BASE_URL  # type: ignore[misc]
+        elif base_url := getattr(settings, "BASE_URL", None):
+            return base_url
         elif "django.contrib.sites" in settings.INSTALLED_APPS:
             from django.contrib.sites.models import Site
 
@@ -130,10 +134,13 @@ class BaseMessageType(ABC):
 
             return f"{scheme}://{site.domain}"
         else:
-            raise WailerTemplateException("Cannot determine absolute URL of website")
+            msg = "Cannot determine absolute URL of website"
+            raise WailerTemplateException(msg)
 
 
 class SmsType(BaseMessageType, ABC):
+    """The interface to implement for SMS message types."""
+
     @abstractmethod
     def get_content(self) -> str:  # pragma: no cover
         """
@@ -244,7 +251,9 @@ class EmailType(BaseMessageType, ABC):
             self.get_template_text_path(), self.get_template_context()
         )
 
-    def get_html_content(self) -> str:
+    # Implicitly returns None for template extensions other than .html/.mjml;
+    # kept as-is to avoid any behavior change.
+    def get_html_content(self) -> str:  # type: ignore[return]
         """
         Renders the HTML template. Override if you want to render differently.
         If you override then you might not need
@@ -266,15 +275,10 @@ class EmailType(BaseMessageType, ABC):
         if path.lower().endswith(".html"):
             return transform(html, base_url=self.get_base_url())
         elif path.lower().endswith(".mjml"):
-            with NodeEngine({"dependencies": {"mjml": "~4.13.0"}}) as engine:
+            with NodeEngine({"dependencies": {"mjml": "^5.4.0"}}) as engine:
                 mjml = engine.import_from("mjml")
-                mjml_render = mjml(
-                    html,
-                    {
-                        "minify": True,
-                        "validationLevel": "strict",
-                    },
-                )
+                # MJML 5's render function is async, hence the resolve()
+                mjml_render = engine.resolve(mjml(html, {"validationLevel": "strict"}))
 
                 return MjmlPremailer(
                     mjml_render.html,

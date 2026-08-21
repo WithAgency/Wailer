@@ -1,7 +1,10 @@
+"""Email backend that sends messages through the Mandrill API."""
+
 import base64
+from collections.abc import Mapping, Sequence
 from email.utils import parseaddr
 from enum import Enum
-from typing import List, Mapping, Sequence, Tuple, TypedDict, Union
+from typing import TypedDict
 
 import httpx
 from django.conf import settings
@@ -58,9 +61,10 @@ def parse_email_address(address: str, email_type: "EmailType") -> "EmailAddress"
     name, addr = parseaddr(address)
 
     if not addr:
-        raise ValueError(f"Invalid e-mail format: {address}")
+        msg = f"Invalid e-mail format: {address}"
+        raise ValueError(msg)
 
-    out = EmailAddress(email=addr, type=email_type.value)  # noqa
+    out = EmailAddress(email=addr, type=email_type.value)
 
     if name:
         out["name"] = name
@@ -68,7 +72,7 @@ def parse_email_address(address: str, email_type: "EmailType") -> "EmailAddress"
     return out
 
 
-def convert_attachment(attachment: Tuple[str, bytes, str]) -> "Attachment":
+def convert_attachment(attachment: tuple[str, bytes, str]) -> "Attachment":
     """
     Converts an attachment into the Mandrill expected format
 
@@ -86,40 +90,52 @@ def convert_attachment(attachment: Tuple[str, bytes, str]) -> "Attachment":
 
 
 class EmailType(Enum):
+    """Kind of recipient in a Mandrill API payload (to, cc or bcc)."""
+
     to = "to"
     cc = "cc"
     bcc = "bcc"
 
 
 class EmailAddress(TypedDict):
+    """An email address entry in a Mandrill API payload."""
+
     email: str
     type: str
     name: NotRequired[str]
 
 
 class Attachment(TypedDict):
+    """An attachment entry in a Mandrill API payload."""
+
     type: str
     name: str
     content: str
 
 
 class Message(TypedDict):
+    """A message in a Mandrill send-email API payload."""
+
     from_email: str
     from_name: NotRequired[str]
-    to: List[EmailAddress]
+    to: list[EmailAddress]
     subject: str
     text: NotRequired[str]
     html: NotRequired[str]
-    attachments: NotRequired[List[Attachment]]
+    attachments: NotRequired[list[Attachment]]
     headers: NotRequired[Mapping[str, str]]
 
 
 class SendEmailRequest(TypedDict):
+    """The request payload of the Mandrill send-email API."""
+
     message: Message
     key: str
 
 
 class SentOutput(TypedDict):
+    """A per-recipient result in a Mandrill send-email API response."""
+
     email: str
     status: str
     reject_reason: NotRequired[str]
@@ -160,9 +176,7 @@ class MandrillEmailBackend(BaseEmailBackend):
 
         return httpx.Client(base_url=self.base_url)
 
-    def make_message(
-        self, message: Union[EmailMessage, EmailMultiAlternatives]
-    ) -> Message:
+    def make_message(self, message: EmailMessage | EmailMultiAlternatives) -> Message:
         """
         Doing our best to guess from the EmailMessage what we should send to
         the API. If there are any edge cases, take care of them here.
@@ -173,15 +187,18 @@ class MandrillEmailBackend(BaseEmailBackend):
         to = []
 
         for email_type in EmailType:
-            for target in getattr(message, email_type.value, []):  # noqa
+            for target in getattr(message, email_type.value, []):
                 to.append(parse_email_address(target, email_type))
 
         out = Message(
             from_email=from_email,
-            **(dict(from_name=from_name) if from_name else {}),
             to=to,
-            subject=message.subject,
+            # str() forces lazy translations, same as Django's serialization
+            subject=str(message.subject),
         )
+
+        if from_name:
+            out["from_name"] = from_name
 
         if text_message := by_alt.get("text/plain"):
             out["text"] = text_message
@@ -203,7 +220,7 @@ class MandrillEmailBackend(BaseEmailBackend):
 
         return out
 
-    def send_messages(self, email_messages: Sequence[EmailMultiAlternatives]) -> int:
+    def send_messages(self, email_messages: Sequence[EmailMessage]) -> int:
         """
         Sends messages through the Mandrill API. The Django API expects to
         receive the sent emails count as an output which is why most exceptions
@@ -221,7 +238,7 @@ class MandrillEmailBackend(BaseEmailBackend):
                 )
 
                 resp = client.post("/api/1.0/messages/send", json=payload)
-                data: List[SentOutput] = resp.json()
+                data: list[SentOutput] = resp.json()
 
                 if resp.is_success and all(x["status"] == "sent" for x in data):
                     done += 1

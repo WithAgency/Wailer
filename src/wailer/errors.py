@@ -1,3 +1,6 @@
+"""Exceptions raised by Wailer."""
+
+
 class WailerException(Exception):
     """Generic error"""
 

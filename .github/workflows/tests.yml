@@ -1,30 +1,71 @@
-name: Unit Tests
+name: Quality & Tests
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  build:
+    lint:
+        runs-on: ubuntu-latest
 
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ["3.10", "3.11"]
-        django-version: ["~3.2", "~4.0", "~4.1"]
+        steps:
+            - uses: actions/checkout@v4
 
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
-      - name: Install dependencies
-        working-directory: demo
-        run: |
-          pip install --upgrade pip
-          pip install poetry
-          poetry install
-          poetry add Django@${{ matrix.django-version }}
-      - name: Run Django tests
-        working-directory: demo
-        run: |
-          poetry run ./manage.py test my_app
+            - name: Setup uv
+              uses: astral-sh/setup-uv@v5
+
+            - name: Ruff check
+              run: |
+                  uv run ruff check .
+                  uv run ruff format --check .
+
+            - name: Mypy
+              run: uv run mypy
+
+    test:
+        runs-on: ubuntu-latest
+        strategy:
+            matrix:
+                python-version: ["3.10", "3.11", "3.12", "3.13", "3.14"]
+                django-version: ["4.2", "5.0", "5.1", "5.2", "6.0", "6.1"]
+                exclude:
+                    # Django < 5.0 does not support Python 3.13+
+                    - python-version: "3.13"
+                      django-version: "4.2"
+                    - python-version: "3.14"
+                      django-version: "4.2"
+                    # Django 5.0/5.1 do not support Python 3.13+ either
+                    - python-version: "3.13"
+                      django-version: "5.0"
+                    - python-version: "3.14"
+                      django-version: "5.0"
+                    - python-version: "3.14"
+                      django-version: "5.1"
+                    # Django 5.2 does not support Python 3.14
+                    - python-version: "3.14"
+                      django-version: "5.2"
+                    # Django 6.x requires Python 3.12+
+                    - python-version: "3.10"
+                      django-version: "6.0"
+                    - python-version: "3.11"
+                      django-version: "6.0"
+                    - python-version: "3.10"
+                      django-version: "6.1"
+                    - python-version: "3.11"
+                      django-version: "6.1"
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Node
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "22"
+
+            - name: Setup uv
+              uses: astral-sh/setup-uv@v5
+              with:
+                  python-version: ${{ matrix.python-version }}
+
+            - name: Run tests
+              run: >
+                  uv run --with "Django~=${{ matrix.django-version }}.0" pytest
+                  demo

@@ -1,24 +1,24 @@
-from typing import Mapping, TypedDict, Union
+"""Template tags to help rendering emails (absolute URLs, inline styles)."""
+
+from pathlib import Path
 from urllib.parse import urljoin
 
 from django.contrib.staticfiles.finders import find
-from django.template import library
+from django.template import Context, library
 from django.template.defaulttags import URLNode
 from django.template.defaulttags import url as django_url
 from django.template.loader import render_to_string
 
 from ..errors import WailerTemplateException
-from ..models import Email
 
 register = library.Library()
 
 
-class WailerContext(TypedDict):
-    self: Email
-
-
 class AbsoluteUrlNode(URLNode):
-    def render(self, context: Union[Mapping, WailerContext]) -> str:
+    """A URL node that makes the resolved URL absolute."""
+
+    def render(self, context: Context) -> str:
+        """Render the URL and make it absolute using the email's base URL."""
         out = super().render(context)
 
         if self.asvar:
@@ -29,7 +29,7 @@ class AbsoluteUrlNode(URLNode):
         new_url = urljoin(context["self"].base_url, url)
 
         if self.asvar:
-            context[self.asvar] = new_url  # noqa
+            context[self.asvar] = new_url
             return ""
         else:
             return new_url
@@ -44,16 +44,16 @@ def email_style(path: str) -> str:
     real_path = find(path)
 
     if not real_path:
-        raise WailerTemplateException(f'Style file "{path}" cannot be found')
+        msg = f'Style file "{path}" cannot be found'
+        raise WailerTemplateException(msg)
 
-    with open(real_path, encoding="utf-8") as f:
-        content = f.read()
+    content = Path(real_path).read_text(encoding="utf-8")
 
     return render_to_string("wailer/style.html", dict(content=content))
 
 
 @register.simple_tag(takes_context=True)
-def make_absolute(context: WailerContext, path: str) -> str:
+def make_absolute(context: Context, path: str) -> str:
     """
     Given the path, returns an absolute URL (for this email's base URL)
 

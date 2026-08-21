@@ -1,3 +1,5 @@
+"""URL patterns to view sent emails and SMSes in a browser."""
+
 from django.urls import path, register_converter
 
 from .views import email, sms
@@ -11,9 +13,11 @@ class EmailFormatConverter:
     regex = "(txt|html)"
 
     def to_python(self, value):
+        """Return the matched format as-is."""
         return value
 
     def to_url(self, value):
+        """Return the format as-is for URL generation."""
         return value
 
 

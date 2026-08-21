@@ -26,8 +26,8 @@ Cheers mate
 You need to create your own email types. Their job is to transform the input
 data into what is going to be the sent email.
 
-To do so, all you need to do is implement the 
-{py:class}`~.wailer.interfaces.EmailType`, which has a bunch of abstract 
+To do so, all you need to do is implement the
+{py:class}`~.wailer.interfaces.EmailType`, which has a bunch of abstract
 methods.
 
 ### Stub
@@ -78,10 +78,10 @@ Email.send(
 ```
 
 The first argument (`"hello"`) is the ID of the type. We'll see about it later.
-The second argument is a dictionary containing the `data` of that email. This
-is the source material that you're transforming into an email. The values
-should be JSON-serializable. From type implementation, you can access the data
-using `self.data`.
+The second argument is a dictionary containing the `data` of that email. This is
+the source material that you're transforming into an email. The values should be
+JSON-serializable. From type implementation, you can access the data using
+`self.data`.
 
 ### Building up
 
@@ -100,8 +100,8 @@ straight from the data.
         return self.data["locale"]
 ```
 
-When sending the email, you need to make sure that it's sent using the locale
-of the recipient.
+When sending the email, you need to make sure that it's sent using the locale of
+the recipient.
 
 ```{note}
 If you send the email as part of the code of a view, Django will be making sure
@@ -150,11 +150,12 @@ This one will look fairly obvious, we're just generating the text of the
 subject. The locale will be guaranteed to be set.
 
 ```python
-    def get_template_html_path(self) -> str:
-        return "my_app/wailer/hello.html"
+def get_template_html_path(self) -> str:
+    return "my_app/wailer/hello.html"
 
-    def get_template_text_path(self) -> str:
-        return "my_app/wailer/hello.txt"
+
+def get_template_text_path(self) -> str:
+    return "my_app/wailer/hello.txt"
 ```
 
 Here we simply return the location of the template files for the HTML and text.
@@ -189,8 +190,8 @@ class Hello(EmailType):
 
 ### Registering
 
-Next you need to tell the system that this email type is available. You need
-to add this to your `settings.py`:
+Next you need to tell the system that this email type is available. You need to
+add this to your `settings.py`:
 
 ```python
 WAILER_EMAIL_TYPES = {
@@ -207,7 +208,7 @@ You must have noticed that not everything is available all the time. Let's have
 a recap.
 
 |                            | `self.data` | `self.context` | locale |
-|----------------------------|-------------|----------------|--------|
+| -------------------------- | ----------- | -------------- | ------ |
 | `get_to()`                 | Yes         | No             | No     |
 | `get_context()`            | Yes         | No             | No     |
 | `get_locale()`             | Discouraged | Yes            | No     |
@@ -224,9 +225,9 @@ demonstrate how to do this.
 
 ### Storing locale
 
-The first thing is to make sure that we know the user's locale at any time.
-A very simple implementation would be to store the user's favorite locale in
-the user model, like this:
+The first thing is to make sure that we know the user's locale at any time. A
+very simple implementation would be to store the user's favorite locale in the
+user model, like this:
 
 ```python
 class User(AbstractUser):
@@ -250,10 +251,9 @@ That is our new target code for email sending:
 email = Email.send("hello", dict(user_id=user.id), user)
 ```
 
-Let's note that as opposed to before, we're giving a third `user` parameter.
-The goal is to optionally be able to link an email to a user so that when you
-delete the user all the related emails (and their PII) can be deleted at the
-same time.
+Let's note that as opposed to before, we're giving a third `user` parameter. The
+goal is to optionally be able to link an email to a user so that when you delete
+the user all the related emails (and their PII) can be deleted at the same time.
 
 Then we add to our email type a way to easily get the user.
 
@@ -263,27 +263,28 @@ Then we add to our email type a way to easily get the user.
         return User.objects.get(pk=self.data["user_id"])
 ```
 
-Next, let's modify the subsequent functions to get the information we need 
-from the user object.
+Next, let's modify the subsequent functions to get the information we need from
+the user object.
 
 ```python
-    def get_to(self) -> str:
-        return self.user.email
+def get_to(self) -> str:
+    return self.user.email
 
-    def get_context(self) -> Mapping[str, JsonType]:
-        return dict(
-            name=f"{self.user.first_name} {self.user.last_name}",
-            email=self.user.email,
-            locale=self.user.locale,
-        )
 
-    def get_locale(self) -> str:
-        return self.context["locale"]
+def get_context(self) -> Mapping[str, JsonType]:
+    return dict(
+        name=f"{self.user.first_name} {self.user.last_name}",
+        email=self.user.email,
+        locale=self.user.locale,
+    )
+
+
+def get_locale(self) -> str:
+    return self.context["locale"]
 ```
 
-You'll note that the locale comes from the `context`. That's because if the
-user changes their locale, they still need to see that old email in the old
-locale.
+You'll note that the locale comes from the `context`. That's because if the user
+changes their locale, they still need to see that old email in the old locale.
 
 The rest of the code doesn't need to be changed, you're good to go!
 
@@ -296,7 +297,7 @@ class Hello(EmailType):
     @cached_property
     def user(self):
         return User.objects.get(pk=self.data["user_id"])
-    
+
     def get_to(self) -> str:
         return self.user.email
 
@@ -322,9 +323,9 @@ class Hello(EmailType):
 ## Skipping text or HTML
 
 If you don't want to send either the text or the HTML part of your email, it's
-easy to skip it by throwing a `NotImplementedError` while returning the
-template path. By example if you're lazy to write a HTML version of your email
-you can just do:
+easy to skip it by throwing a `NotImplementedError` while returning the template
+path. By example if you're lazy to write a HTML version of your email you can
+just do:
 
 ```python
     def get_template_html_path(self) -> str:
@@ -335,8 +336,7 @@ you can just do:
 
 HTML emails are the most notoriously annoying kind of HTML to write. It did not
 evolve since its invention by Leonardo da Vinci in 1495 and email clients have
-quite an interesting approach of making the most dumb choices available to
-them.
+quite an interesting approach of making the most dumb choices available to them.
 
 One of the goals of Wailer is definitely to ease that pain. Let's review what
 can help.
@@ -347,10 +347,10 @@ Most email clients will ignore any `<style>` or `<link>` tag, making it
 mandatory to inline CSS into every single element. So what Wailer provides here
 is the ability to write your CSS file on the side and then inline it for you.
 
-Let's suppose that you put in your static files the 
-`my_app/wailer/styled-html.css` (relative to your app's 
-[static folder](https://docs.djangoproject.com/en/4.0/howto/static-files/)) 
-file with the following content:
+Let's suppose that you put in your static files the
+`my_app/wailer/styled-html.css` (relative to your app's
+[static folder](https://docs.djangoproject.com/en/4.0/howto/static-files/)) file
+with the following content:
 
 ```css
 h1 {
@@ -364,12 +364,12 @@ And then your template, in `my_app/wailer/styled-html.html`:
 {% load wailer %}
 <!DOCTYPE html>
 <html>
-<head>
-    {% email_style "my_app/wailer/styled-html.css" %}
-</head>
-<body>
-    <h1>Hello</h1>
-</body>
+    <head>
+        {% email_style "my_app/wailer/styled-html.css" %}
+    </head>
+    <body>
+        <h1>Hello</h1>
+    </body>
 </html>
 ```
 
@@ -384,7 +384,7 @@ something like:
 
 ```html
 <!-- ... -->
-    <h1 style="color:red">Hello</h1>
+<h1 style="color:red">Hello</h1>
 <!-- ... -->
 ```
 
@@ -394,45 +394,47 @@ know.
 ```
 
 ```{note}
-Under the hood, all the work is done by 
+Under the hood, all the work is done by
 [Premailer](https://pypi.org/project/premailer/) using fairly default options
 as much as possible.
 ```
 
 (absolute_url)=
+
 ### Absolute URLs for images and links in HTML
 
-Since you're in an email, you need to use absolute URLs. By example, if you
-have a `<img src="/img/foo.jpg">` then it simply  won't work because the emails
-don't have an URL of their own so the email client cannot resolve this image's
-URL.
+Since you're in an email, you need to use absolute URLs. By example, if you have
+a `<img src="/img/foo.jpg">` then it simply won't work because the emails don't
+have an URL of their own so the email client cannot resolve this image's URL.
 
 To that end, Wailer will automatically fix your links and emails in order to
-reflect their absolute URL. By example our image tag from above will 
-automatically be transformed into `<img src="https://my-app.com/img/foo.jpg>` 
-(if your base URL is `https://my-app.com`, cf right after). You don't have 
+reflect their absolute URL. By example our image tag from above will
+automatically be transformed into `<img src="https://my-app.com/img/foo.jpg>`
+(if your base URL is `https://my-app.com`, cf right after). You don't have
 anything to do, just render your template as usual and let the magic happen.
 
-However there is one detail that you might want to have a look into. There is
-no bulletproof way in Django to determine the absolute domain name of a 
-website. To that end, Wailer will use several strategies.
+However there is one detail that you might want to have a look into. There is no
+bulletproof way in Django to determine the absolute domain name of a website. To
+that end, Wailer will use several strategies.
 
-1. If there is a `WAILER_BASE_URL` setting set, then this value will be used as 
+1. If there is a `WAILER_BASE_URL` setting set, then this value will be used as
    a base URL for all emails
-2. Otherwise we'll try to use the 
-   ["sites"](https://docs.djangoproject.com/en/4.0/ref/contrib/sites/) 
+2. Otherwise, if there is a `BASE_URL` setting (a common convention, used among
+   others by Model W), then it will be used
+3. Otherwise we'll try to use the
+   ["sites"](https://docs.djangoproject.com/en/4.0/ref/contrib/sites/)
    framework, if available
-   1. If `WAILER_SITE_ID` is defined in the settings, we'll use that
-   2. Otherwise we'll get the default site. We do not have access to the 
-      `request` at the time of sending emails so if you're dealing with several 
-      websites you need to implement this on your own
-3. Otherwise, we'll just fail because there is really no way of guessing
+    1. If `WAILER_SITE_ID` is defined in the settings, we'll use that
+    2. Otherwise we'll get the default site. We do not have access to the
+       `request` at the time of sending emails so if you're dealing with several
+       websites you need to implement this on your own
+4. Otherwise, we'll just fail because there is really no way of guessing
 
 This tries to be a sensible default behavior, which will work without any
 configuration if you're using the sites framework with one site, however this
-will most definitely not be enough for all use cases. This is why you can 
-easily override this behavior in your {py:class}`~.wailer.interfaces.EmailType`
-implementation by overloading 
+will most definitely not be enough for all use cases. This is why you can easily
+override this behavior in your {py:class}`~.wailer.interfaces.EmailType`
+implementation by overloading
 {py:meth}`~.wailer.interfaces.BaseMessageType.get_base_url`.
 
 ### Absolute URLs programmatically
@@ -446,23 +448,18 @@ tags are here to help you.
 If you have an URL and you want to make it absolute, you can do it like that:
 
 ```html
-{% load wailer %}
-
-{% make_absolute "/foo/bar" %}
+{% load wailer %} {% make_absolute "/foo/bar" %}
 <!-- Will output https://my-app.com/foo/bar -->
 ```
 
 #### Absolute URL
 
-Wailer also provides an absolute version of Django's 
-[`{% url %}`](https://docs.djangoproject.com/en/4.0/ref/templates/builtins/#url) 
-tag. It works exactly the same way except it will output URLs that are 
-absolute.
+Wailer also provides an absolute version of Django's
+[`{% url %}`](https://docs.djangoproject.com/en/4.0/ref/templates/builtins/#url)
+tag. It works exactly the same way except it will output URLs that are absolute.
 
 ```html
-{% load wailer %}
-
-{% absolute_url "my_view" %}
+{% load wailer %} {% absolute_url "my_view" %}
 <!-- Will output https://my-app.com/my-view -->
 ```
 
@@ -475,8 +472,7 @@ Wailer lets you create permalinks to your emails, for two main reasons:
 - But mostly, so you can debug your HTML code without sending a damned email
   each time you change a line
 
-This is accessible as the
-{py:attr}`~.wailer.models.Email.link_html` and
+This is accessible as the {py:attr}`~.wailer.models.Email.link_html` and
 {py:attr}`~.wailer.models.Email.link_text` attributes of your email.
 
 Meaning that you can use it from a HTML or text template the following way:
@@ -514,8 +510,8 @@ Here is a simple example of how to add an attachment, by implementing
 ## Conclusion
 
 We've seen that in order to provide you protection against common emailing
-pitfalls, Wailer will ask you to write your emails through the implementation
-of a given interface.
+pitfalls, Wailer will ask you to write your emails through the implementation of
+a given interface.
 
 This will bring you to focus on providing the business rules while the emailing
 mechanics are managed by the library itself. It comes at the price of a bit of

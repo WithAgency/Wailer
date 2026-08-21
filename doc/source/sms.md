@@ -19,6 +19,7 @@ The first thing to do is to extend {py:class}`~.wailer.interfaces.SmsType`.
 ```python
 from wailer.interfaces import SmsType
 
+
 class HelloUser(SmsType):
     pass
 ```
@@ -47,15 +48,16 @@ We'll expect to receive in the data the `user_id`, which we can then exploit in
 particular when making the context.
 
 ```python
-    @cached_property
-    def user(self):
-        return User.objects.get(pk=self.data["user_id"])
+@cached_property
+def user(self):
+    return User.objects.get(pk=self.data["user_id"])
 
-    def get_context(self) -> Mapping[str, JsonType]:
-        return dict(
-            name=f"{self.user.first_name} {self.user.last_name}",
-            locale=self.user.locale,
-        )
+
+def get_context(self) -> Mapping[str, JsonType]:
+    return dict(
+        name=f"{self.user.first_name} {self.user.last_name}",
+        locale=self.user.locale,
+    )
 ```
 
 ### Recipient
@@ -76,11 +78,12 @@ Just like for emails, you need to decide which locale you will use. The locale
 will be activated during content render.
 
 ```python
-    def get_locale(self) -> str:
-        return self.context["locale"]
+def get_locale(self) -> str:
+    return self.context["locale"]
 
-    def get_content(self) -> str:
-        return _(f"Hello %(name)s") % dict(name=self.context["name"])
+
+def get_content(self) -> str:
+    return _(f"Hello %(name)s") % dict(name=self.context["name"])
 ```
 
 Let's also note that if you wanted to make a link to the website itself, it's

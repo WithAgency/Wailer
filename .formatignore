@@ -1,0 +1,6 @@
+# Django templates: prettier mangles template-tag whitespace, which breaks
+# translations among other things
+**/templates/**
+*.mjml
+# Generated code
+**/migrations/**

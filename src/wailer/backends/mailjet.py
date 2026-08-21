@@ -1,6 +1,9 @@
+"""Email and SMS backends that send messages through the Mailjet API."""
+
 import base64
+from collections.abc import Iterator, Mapping, Sequence
 from email.utils import parseaddr
-from typing import Iterator, List, Mapping, Sequence, Tuple, TypedDict, Union
+from typing import TypedDict
 
 import httpx
 from django.conf import settings
@@ -75,9 +78,10 @@ def parse_email_address(address: str) -> "EmailAddress":
     name, addr = parseaddr(address)
 
     if not addr:
-        raise ValueError(f"Invalid e-mail format: {address}")
+        msg = f"Invalid e-mail format: {address}"
+        raise ValueError(msg)
 
-    out = dict(Email=addr)
+    out = EmailAddress(Email=addr)
 
     if name:
         out["Name"] = name
@@ -85,7 +89,7 @@ def parse_email_address(address: str) -> "EmailAddress":
     return out
 
 
-def convert_attachment(attachment: Tuple[str, bytes, str]) -> "Attachment":
+def convert_attachment(attachment: tuple[str, bytes, str]) -> "Attachment":
     """
     Converts an attachment into the Mailjet expected format
 
@@ -103,33 +107,43 @@ def convert_attachment(attachment: Tuple[str, bytes, str]) -> "Attachment":
 
 
 class EmailAddress(TypedDict):
+    """An email address entry in a Mailjet API payload."""
+
     Email: str
-    Name: str
+    Name: NotRequired[str]
 
 
 class Attachment(TypedDict):
+    """An attachment entry in a Mailjet API payload."""
+
     ContentType: str
     Filename: str
     Base64Content: str
 
 
 class Message(TypedDict):
+    """A single message in a Mailjet send-email API payload."""
+
     From: EmailAddress
-    To: List[EmailAddress]
-    Cc: NotRequired[List[EmailAddress]]
-    Bcc: NotRequired[List[EmailAddress]]
+    To: list[EmailAddress]
+    Cc: NotRequired[list[EmailAddress]]
+    Bcc: NotRequired[list[EmailAddress]]
     Subject: str
     TextPart: NotRequired[str]
     HTMLPart: NotRequired[str]
-    Attachments: NotRequired[List[Attachment]]
+    Attachments: NotRequired[list[Attachment]]
     Headers: NotRequired[Mapping[str, str]]
 
 
 class SendEmailRequest(TypedDict):
-    Messages: List[Message]
+    """The request payload of the Mailjet send-email API."""
+
+    Messages: list[Message]
 
 
 class ToOutput(TypedDict):
+    """A recipient entry in a Mailjet send-email API response."""
+
     Email: str
     MessageUUID: str
     MessageID: int
@@ -137,15 +151,21 @@ class ToOutput(TypedDict):
 
 
 class MessageOutput(TypedDict):
+    """A per-message result in a Mailjet send-email API response."""
+
     Status: str
     To: Sequence[ToOutput]
 
 
 class SendEmailOutput(TypedDict):
-    Messages: List[MessageOutput]
+    """The response payload of the Mailjet send-email API."""
+
+    Messages: list[MessageOutput]
 
 
 class SendSmsRequest(TypedDict):
+    """The request payload of the Mailjet send-SMS API."""
+
     From: str
     To: str
     Text: str
@@ -202,9 +222,7 @@ class MailjetEmailBackend(MailjetClient, BaseEmailBackend):
     Emails are a mess, maybe (probably) some edge cases have been left out.
     """
 
-    def make_message(
-        self, message: Union[EmailMessage, EmailMultiAlternatives]
-    ) -> Message:
+    def make_message(self, message: EmailMessage | EmailMultiAlternatives) -> Message:
         """
         Doing our best to guess from the EmailMessage what we should send to
         the API. If there are any edge cases, take care of them here.
@@ -215,7 +233,8 @@ class MailjetEmailBackend(MailjetClient, BaseEmailBackend):
         out = Message(
             From=parse_email_address(message.from_email),
             To=[parse_email_address(x) for x in message.to],
-            Subject=message.subject,
+            # str() forces lazy translations, same as Django's serialization
+            Subject=str(message.subject),
         )
 
         if text_message := by_alt.get("text/plain"):
@@ -244,7 +263,7 @@ class MailjetEmailBackend(MailjetClient, BaseEmailBackend):
 
         return out
 
-    def send_messages(self, email_messages: Sequence[EmailMultiAlternatives]) -> int:
+    def send_messages(self, email_messages: Sequence[EmailMessage]) -> int:
         """
         Sends messages through the Mailjet API. The Django API expects to
         receive the sent emails count as an output which is why most exceptions
@@ -287,7 +306,7 @@ class MailjetSmsBackend(MailjetClient, BaseSmsBackend):
                 Text=message.body,
             )
 
-    def send_messages(self, messages: List[SmsMessage]) -> int:
+    def send_messages(self, messages: list[SmsMessage]) -> int:
         """
         Transforming a list of messages into a list of requests to Mailjet
         to be able to send those to clients.

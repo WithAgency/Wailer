@@ -1,9 +1,13 @@
+"""Utility helpers: class importing, loopback detection and MJML premailing."""
+
 from importlib import import_module
 from ipaddress import ip_address
 from urllib.parse import urljoin, urlparse
 
-from lxml import etree
+from lxml import etree  # type: ignore[import-untyped]  # lxml-stubs not a dep
 from premailer import Premailer
+
+from .errors import WailerTemplateException
 
 
 def import_class(path: str):
@@ -57,16 +61,30 @@ def is_loopback(host: str) -> bool:
 
 
 class MjmlPremailer(Premailer):
-    def transform(self, html=None, pretty_print=True, **kwargs):
+    """A Premailer variant that only rewrites URLs, suited for MJML output."""
+
+    def __init__(self, *args, **kwargs):
+        """
+        Same options as Premailer, except that internal links (anchors) are
+        preserved by default: within an email there is no page to make them
+        absolute against.
+        """
+
+        kwargs.setdefault("preserve_internal_links", True)
+        super().__init__(*args, **kwargs)
+
+    def transform(self, html=None, pretty_print=True, **kwargs):  # noqa: C901 -- vendored/adapted from premailer
         """
         Stripped-down version of the original transform method that does only
         deal with links and image URLs.
         """
 
         if html is not None and self.html is not None:
-            raise TypeError("Can't pass html argument twice")
+            msg = "Can't pass html argument twice"
+            raise TypeError(msg)
         elif html is None and self.html is None:
-            raise TypeError("must pass html as first argument")
+            msg = "must pass html as first argument"
+            raise TypeError(msg)
         elif html is None:
             html = self.html
         if hasattr(html, "getroottree"):
@@ -85,16 +103,19 @@ class MjmlPremailer(Premailer):
             # the root if it was in the original html.
             root = tree if stripped.startswith(tree.docinfo.doctype) else page
 
-        assert page is not None
+        if page is None:
+            msg = "Could not parse the HTML page"
+            raise WailerTemplateException(msg)
 
         #
         # URLs
         #
         if self.base_url and not self.disable_link_rewrites:
             if not urlparse(self.base_url).scheme:
-                raise ValueError("Base URL must have a scheme")
+                msg = "Base URL must have a scheme"
+                raise ValueError(msg)
             for attr in ("href", "src"):
-                for item in page.xpath("//@%s" % attr):
+                for item in page.xpath(f"//@{attr}"):
                     parent = item.getparent()
                     url = parent.attrib[attr]
                     if (

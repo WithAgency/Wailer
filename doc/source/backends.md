@@ -5,9 +5,9 @@ external services).
 
 This ensures:
 
--   No extra library is depended upon
--   All requests have proper timeouts (aka not made with requests)
--   Everything is maintained at each release
+- No extra library is depended upon
+- All requests have proper timeouts (aka not made with requests)
+- Everything is maintained at each release
 
 ## Emails
 
@@ -15,18 +15,17 @@ This ensures:
 
 In order to use Mailjet, you need to set the following Django settings:
 
--   `EMAIL_BACKEND` &mdash; Must be set to
-    `"wailer.backends.MailjetEmailBackend"`
--   `MAILJET_API_KEY_PUBLIC` &mdash; Contains the public API key
--   `MAILJET_API_KEY_PRIVATE` &mdash; Contains the private API key
+- `EMAIL_BACKEND` &mdash; Must be set to `"wailer.backends.MailjetEmailBackend"`
+- `MAILJET_API_KEY_PUBLIC` &mdash; Contains the public API key
+- `MAILJET_API_KEY_PRIVATE` &mdash; Contains the private API key
 
 ### Mandrill
 
 An Mandrill backend is also available.
 
--   `EMAIL_BACKEND` &mdash; Must be set to
-    `"wailer.backends.MandrillEmailBackend"`
--   `MANDRILL_API_KEY` &mdash; Contains the API key
+- `EMAIL_BACKEND` &mdash; Must be set to
+  `"wailer.backends.MandrillEmailBackend"`
+- `MANDRILL_API_KEY` &mdash; Contains the API key
 
 ## SMS
 
@@ -35,6 +34,6 @@ An Mandrill backend is also available.
 Uses the Mailjet SMS service. Once it's configured and paid for, you can set the
 following settings:
 
--   `SMS_BACKEND` &mdash; Must be set to `"wailer.backends.MailjetSmsBackend"`
--   `MAILJET_API_TOKEN` &mdash; Is the API Token that you get from the Mailjet
-    console
+- `SMS_BACKEND` &mdash; Must be set to `"wailer.backends.MailjetSmsBackend"`
+- `MAILJET_API_TOKEN` &mdash; Is the API Token that you get from the Mailjet
+  console

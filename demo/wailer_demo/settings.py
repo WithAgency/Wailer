@@ -27,7 +27,7 @@ with EnvManager() as env:
     # SECURITY WARNING: don't run with debug turned on in production!
     DEBUG = True
 
-    ALLOWED_HOSTS = []
+    ALLOWED_HOSTS: list[str] = []
 
     # Application definition
 
@@ -88,7 +88,7 @@ with EnvManager() as env:
 
     AUTH_PASSWORD_VALIDATORS = [
         {
-            "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",
+            "NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator",  # noqa: E501
         },
         {
             "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -147,6 +147,7 @@ with EnvManager() as env:
         "static-no-html": "my_app.emails.StaticNoHtml",
         "hello": "my_app.emails.Hello",
         "hello-mjml": "my_app.emails.HelloMjml",
+        "fancy-mjml": "my_app.emails.FancyMjml",
         "hello-attachment": "my_app.emails.HelloAttachment",
         "hello-user": "my_app.emails.HelloUser",
         "styled-html": "my_app.emails.StyledHtml",
