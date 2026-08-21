@@ -10,16 +10,16 @@ jobs:
         runs-on: ubuntu-latest
 
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
 
             - name: Setup uv
-              uses: astral-sh/setup-uv@v5
+              uses: astral-sh/setup-uv@v10.0.1
 
             - name: Build package
               run: uv build
 
             - name: Store the distribution packages
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: python-package-distributions
                   path: dist/
@@ -38,7 +38,7 @@ jobs:
 
         steps:
             - name: Download the distribution packages
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: python-package-distributions
                   path: dist/
