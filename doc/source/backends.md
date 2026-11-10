@@ -27,6 +27,13 @@ An Mandrill backend is also available.
   `"wailer.backends.MandrillEmailBackend"`
 - `MANDRILL_API_KEY` &mdash; Contains the API key
 
+Django only lets a backend report how many messages went out, so a message
+Mandrill refuses (unsigned sender domain, invalid recipient, bad API key)
+would otherwise disappear behind a count of zero. The backend logs every
+refusal as an error on the `wailer.backends.mandrill` logger, naming the
+sender, the recipient and the reason Mandrill gives, so that it shows up in
+your logs and in your error tracker if one reads them.
+
 ## SMS
 
 ### Mailjet

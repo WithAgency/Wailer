@@ -1,6 +1,7 @@
 """Email backend that sends messages through the Mandrill API."""
 
 import base64
+import logging
 from collections.abc import Mapping, Sequence
 from email.utils import parseaddr
 from enum import Enum
@@ -14,6 +15,12 @@ from django.utils.encoding import force_bytes
 from typing_extensions import NotRequired
 
 from ._utils import by_alternatives
+
+logger = logging.getLogger(__name__)
+
+# Mandrill answers one status per recipient. "sent" is done, "queued" and
+# "scheduled" are on their way; these two mean the email will never leave.
+NOT_SENT_STATUSES = frozenset({"rejected", "invalid"})
 
 HEADERS_BLACKLIST = set(
     x.lower()
@@ -226,6 +233,12 @@ class MandrillEmailBackend(BaseEmailBackend):
         receive the sent emails count as an output which is why most exceptions
         are silenced here (kinda dumb if you ask me, but that's the way of the
         API).
+
+        Silenced, but not lost: a message Mandrill refuses (unsigned sender
+        domain, invalid recipient, bad API key) is logged as an error naming
+        the sender, the recipient and Mandrill's reason, so that the error
+        reaches the logs and whatever reads them (e.g. Sentry) instead of
+        vanishing behind a count.
         """
 
         done = 0
@@ -238,9 +251,52 @@ class MandrillEmailBackend(BaseEmailBackend):
                 )
 
                 resp = client.post("/api/1.0/messages/send", json=payload)
-                data: list[SentOutput] = resp.json()
+                outputs = self.parse_outputs(resp)
 
-                if resp.is_success and all(x["status"] == "sent" for x in data):
+                if outputs is None:
+                    logger.error(
+                        "Mandrill refused the request from %s to %s (HTTP %s): %s",
+                        message.from_email,
+                        ", ".join(message.recipients()),
+                        resp.status_code,
+                        resp.text[:500],
+                    )
+                    continue
+
+                for output in outputs:
+                    if output.get("status") in NOT_SENT_STATUSES:
+                        logger.error(
+                            "Mandrill did not send the email from %s to %s: %s (%s)",
+                            message.from_email,
+                            output.get("email"),
+                            output.get("status"),
+                            output.get("reject_reason") or "no reason given",
+                        )
+
+                if outputs and all(x.get("status") == "sent" for x in outputs):
                     done += 1
 
         return done
+
+    @staticmethod
+    def parse_outputs(resp: httpx.Response) -> list[SentOutput] | None:
+        """
+        Reads the per-recipient statuses out of a send-email response.
+
+        A successful call answers a list with one status per recipient. On an
+        invalid key or a malformed message, Mandrill answers an error object
+        (or no JSON at all), which is reported as None.
+        """
+
+        if not resp.is_success:
+            return None
+
+        try:
+            data = resp.json()
+        except ValueError:
+            return None
+
+        if not isinstance(data, list):
+            return None
+
+        return data
