@@ -7,6 +7,7 @@ network level.
 
 import base64
 import json
+import logging
 
 from django.core.mail import EmailMultiAlternatives
 from django.test import override_settings
@@ -156,6 +157,127 @@ def test_mandrill_email_rejected_counts_zero(httpx_mock):
     )
 
     assert MandrillEmailBackend().send_messages([make_email()]) == 0
+
+
+@override_settings(MANDRILL_API_KEY="mandrill-key")
+def test_mandrill_sent_email_logs_nothing(httpx_mock, caplog):
+    httpx_mock.add_response(
+        url="https://mandrillapp.com/api/1.0/messages/send",
+        json=[
+            {"email": "to@example.org", "status": "sent"},
+            {"email": "cc@example.org", "status": "sent"},
+        ],
+    )
+
+    with caplog.at_level(logging.WARNING):
+        sent = MandrillEmailBackend().send_messages([make_email()])
+
+    assert sent == 1
+    assert caplog.records == []
+
+
+@override_settings(MANDRILL_API_KEY="mandrill-key")
+def test_mandrill_rejected_email_is_logged_with_its_reason(httpx_mock, caplog):
+    """
+    A refusal leaves an error naming the sender, the recipient and Mandrill's
+    reason: an error, so that an error tracker picks it up.
+    """
+
+    httpx_mock.add_response(
+        url="https://mandrillapp.com/api/1.0/messages/send",
+        json=[
+            {"email": "to@example.org", "status": "sent"},
+            {
+                "email": "cc@example.org",
+                "status": "rejected",
+                "reject_reason": "unsigned",
+            },
+        ],
+    )
+
+    with caplog.at_level(logging.WARNING):
+        sent = MandrillEmailBackend().send_messages([make_email()])
+
+    assert sent == 0
+    (record,) = caplog.records
+    assert record.levelno == logging.ERROR
+    assert record.name == "wailer.backends.mandrill"
+    text = record.getMessage()
+    assert "Sender <sender@example.org>" in text
+    assert "cc@example.org" in text
+    assert "to@example.org" not in text
+    assert "rejected (unsigned)" in text
+
+
+@override_settings(MANDRILL_API_KEY="mandrill-key")
+def test_mandrill_invalid_recipient_without_reason_is_logged(httpx_mock, caplog):
+    httpx_mock.add_response(
+        url="https://mandrillapp.com/api/1.0/messages/send",
+        json=[{"email": "to@example.org", "status": "invalid"}],
+    )
+
+    with caplog.at_level(logging.WARNING):
+        MandrillEmailBackend().send_messages([make_email()])
+
+    (record,) = caplog.records
+    assert record.levelno == logging.ERROR
+    assert "invalid (no reason given)" in record.getMessage()
+
+
+@override_settings(MANDRILL_API_KEY="mandrill-key")
+def test_mandrill_refused_request_is_logged(httpx_mock, caplog):
+    """
+    An invalid key makes Mandrill answer an error object instead of a list of
+    statuses: still a count of zero, and the error in the logs.
+    """
+
+    httpx_mock.add_response(
+        url="https://mandrillapp.com/api/1.0/messages/send",
+        status_code=500,
+        json={"status": "error", "code": -1, "message": "Invalid API key"},
+    )
+
+    with caplog.at_level(logging.WARNING):
+        sent = MandrillEmailBackend().send_messages([make_email()])
+
+    assert sent == 0
+    (record,) = caplog.records
+    assert record.levelno == logging.ERROR
+    text = record.getMessage()
+    assert "Sender <sender@example.org>" in text
+    assert "to@example.org" in text
+    assert "cc@example.org" in text
+    assert "HTTP 500" in text
+    assert "Invalid API key" in text
+
+
+@override_settings(MANDRILL_API_KEY="mandrill-key")
+def test_mandrill_non_json_answer_is_logged(httpx_mock, caplog):
+    httpx_mock.add_response(
+        url="https://mandrillapp.com/api/1.0/messages/send",
+        status_code=200,
+        text="<html>Bad gateway</html>",
+    )
+
+    with caplog.at_level(logging.WARNING):
+        sent = MandrillEmailBackend().send_messages([make_email()])
+
+    assert sent == 0
+    (record,) = caplog.records
+    assert "Bad gateway" in record.getMessage()
+
+
+@override_settings(MANDRILL_API_KEY="mandrill-key")
+def test_mandrill_queued_email_is_not_a_refusal(httpx_mock, caplog):
+    httpx_mock.add_response(
+        url="https://mandrillapp.com/api/1.0/messages/send",
+        json=[{"email": "to@example.org", "status": "queued"}],
+    )
+
+    with caplog.at_level(logging.WARNING):
+        MandrillEmailBackend().send_messages([make_email()])
+
+    assert caplog.records == []
 
 
 @override_settings(**MAILJET_SETTINGS, MAILJET_BASE_URL="https://mj.example.org")
